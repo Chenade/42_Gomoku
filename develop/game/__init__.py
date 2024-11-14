@@ -1,1 +1,2 @@
-from .board import Gomoku
+from .board import Board
+from .play import Gomoku

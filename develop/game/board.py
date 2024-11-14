@@ -3,7 +3,7 @@ import pygame
 COL = 19
 SIZE = 80
 
-class Gomoku:
+class Board:
     def __init__(self, setting):
         self.setting = setting
         self.w_h = SIZE * (COL + 1)
@@ -78,12 +78,12 @@ class Gomoku:
         textSurface = font.render(text, True, font_color)
         return textSurface, textSurface.get_rect()
 
-    def play_get_pos(self):
+    def get_pos(self):
         self.x_stone, self.y_stone = pygame.mouse.get_pos()
 
         return self.x_stone, self.y_stone
 
-    def play_draw_stone_pos(self):
+    def get_stone_pos(self):
         if self.x_stone % SIZE > SIZE // 2:
             self.x_stone = (self.x_stone - self.x_stone % SIZE) + SIZE
         else:
@@ -96,78 +96,27 @@ class Gomoku:
 
         return self.x_stone, self.y_stone
 
-    def play_draw_stone(self, stone, play_order, color_name, stone_color, x_stone, y_stone):
-        self.stone, self.play_order, player_color = stone, play_order, color_name
+    def draw_stone(self, stone, color_name, stone_color, x_stone, y_stone):
+        self.stones, player_color = stone, color_name
         self.stone_color, self.x_stone, self.y_stone = stone_color, x_stone, y_stone
 
-        if (self.x_stone, self.y_stone) in self.stone["white"]:
-            pass
-        elif (self.x_stone, self.y_stone) in self.stone["black"]:
-            pass
-        else:
-            pygame.draw.circle(self.screen, self.stone_color,
-                               (self.x_stone, self.y_stone), SIZE//2)
-            self.stone[player_color].append((self.x_stone, self.y_stone))
-            if self.play_order: self.play_order = False
-            else: self.play_order = True
-        return self.stone, self.play_order
+        # if (self.x_stone, self.y_stone) in self.stones["white"]:
+        #     pass
+        # elif (self.x_stone, self.y_stone) in self.stones["black"]:
+        #     pass
+        # else:
+        pygame.draw.circle(self.screen, self.stone_color,(self.x_stone, self.y_stone), SIZE//2)
+        self.stones[player_color].append((self.x_stone, self.y_stone))
+        self._stones[x_stone, y_stone] = (color_name == "black") and 1 or 2
 
-    def score(self, stone, color_name, player_score, play_order):
-        self.stone, player_color, self.player_score = stone, color_name, player_score
-        self.play_order = play_order
-        self.result = None
-        if len(self.stone[player_color]) >= 5:
+        return self.stones
 
-            stone_sort = sorted(self.stone[player_color])
+    
+    def draw_result(self, winner, text):
+        if winner == "white":
+            self.text_draw(text, self.panel_x - 20, self.w_h // 2 - 120, self.setting.palette("green"), SIZE)
 
-            for x, y in stone_sort:
-                cnt = 0
-                for i in range(1, 5):
-                    if (x, y + SIZE * i) in stone_sort:
-                        cnt += 1
-                        if cnt == 4:
-                            self.player_score += 1
-                            self.play_order = None
-                            self.result = True
-                            break
+        elif winner == "black":
+            self.text_draw(text, self.panel_x - 20, self.w_h // 2 + 120, self.setting.palette("green"), SIZE)    
 
-                    else: break
-
-                cnt = 0
-                for i in range(1, 5):
-                    if (x + SIZE * i, y) in stone_sort:
-                        cnt += 1
-                        if cnt == 4:
-                            self.player_score += 1
-                            self.play_order = None
-                            self.result = True
-                            break
-                    else: break
-
-                cnt = 0
-                for i in range(1, 5):
-                    if (x + SIZE * i, y+SIZE * i) in stone_sort:
-                        cnt += 1
-                        if cnt == 4:
-                            self.player_score += 1
-                            self.play_order = None
-                            self.result = True
-                            break
-                cnt = 0
-                for i in range(1, 5):
-                    if (x + SIZE * i, y - SIZE * i) in stone_sort:
-                        cnt += 1
-                        if cnt == 4:
-                            self.player_score += 1
-                            self.play_order = None
-                            self.result = True
-                            break
-
-        if self.result:
-            if player_color == "white":
-                self.text_draw("WIN", self.panel_x - 20, self.w_h // 2 - 120, self.setting.palette("green"), SIZE)
-
-            elif player_color == "black":
-                self.text_draw("WIN", self.panel_x - 20, self.w_h // 2 + 120, self.setting.palette("green"), SIZE)
-
-        return self.player_score, self.play_order
+        return None

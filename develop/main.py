@@ -12,7 +12,6 @@ if __name__ == "__main__":
 
     _stones = {}
     stones = {}
-    stones["white"], stones["black"] = [], []
     player1_score, player2_score = 0, 0
     play_order = None
     
@@ -28,7 +27,6 @@ if __name__ == "__main__":
 
             # start the game. play order : # True: black, False: white
             if board.w + board.x > x_stone > board.x and board.y + board.h > y_stone > board.y:
-                stones["white"], stones["black"] = [], []
                 player1_score, player2_score = 0, 0
                 _stones, play_order = gomoku.new_game()
                 board.text_draw("GAME START", board.w_h//2, 30, setting.palette("green"), 35)
@@ -40,13 +38,13 @@ if __name__ == "__main__":
             
                     # Draw a white stone
                     if not play_order:
-                        stones = board.draw_stone(stones, "white", setting.palette("white"), x_stone, y_stone)
-                        player1_score, play_order = gomoku.move(stones, "white", player1_score, play_order)
+                        _stones = board.draw_stone(_stones, "white", setting.palette("white"), x_stone, y_stone)
+                        player1_score, play_order = gomoku.move(_stones, "white", player1_score, play_order)
 
                     # Draw a black stone
                     elif play_order:
-                        stones = board.draw_stone(stones, "black", setting.palette("black"), x_stone, y_stone)
-                        player2_score, play_order = gomoku.move( stones, "black", player2_score, play_order)
+                        _stones = board.draw_stone(_stones, "black", setting.palette("black"), x_stone, y_stone)
+                        player2_score, play_order = gomoku.move(_stones, "black", player2_score, play_order)
                     
         board.draw_button()
         pygame.display.update()

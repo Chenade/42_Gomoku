@@ -96,22 +96,13 @@ class Board:
 
         return self.x_stone, self.y_stone
 
-    def draw_stone(self, stone, color_name, stone_color, x_stone, y_stone):
-        self.stones, player_color = stone, color_name
+    def draw_stone(self, stones, color_name, stone_color, x_stone, y_stone):
+        self.stones, player_color = stones, color_name
         self.stone_color, self.x_stone, self.y_stone = stone_color, x_stone, y_stone
-
-        # if (self.x_stone, self.y_stone) in self.stones["white"]:
-        #     pass
-        # elif (self.x_stone, self.y_stone) in self.stones["black"]:
-        #     pass
-        # else:
         pygame.draw.circle(self.screen, self.stone_color,(self.x_stone, self.y_stone), SIZE//2)
-        self.stones[player_color].append((self.x_stone, self.y_stone))
-        self._stones[x_stone, y_stone] = (color_name == "black") and 1 or 2
-
+        self.stones[self.x_stone // SIZE - 1, self.y_stone // SIZE - 1] = (color_name == "black") and 1 or 2
         return self.stones
 
-    
     def draw_result(self, winner, text):
         if winner == "white":
             self.text_draw(text, self.panel_x - 20, self.w_h // 2 - 120, self.setting.palette("green"), SIZE)

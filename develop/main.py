@@ -46,16 +46,14 @@ if __name__ == "__main__":
             if play_order is not None:  # playing
                 if gomoku.g_type == "PvP" or (gomoku.g_type == "PvC" and play_order is True):
                     x_stone, y_stone = board.get_stone_pos()
-                    if x_stone is not None and y_stone is not None:  # if click on the board
-                        if _stones[y_stone, x_stone] != 0:  # if the position is already occupied
-                            continue
+                    if gomoku.check_legal(x_stone, y_stone):
                         _stones[y_stone, x_stone] = (1 if play_order else 2)
                         board.draw_stone(play_order, x_stone, y_stone)
                         player1_score, player2_score, play_order = gomoku.move(board,_stones, play_order, player1_score, player2_score)
                         turn_start_time = pygame.time.get_ticks()  # Reset timer
                         board.draw_player(gomoku.g_type, play_order)
+                        pygame.display.update()
                         if gomoku.g_type == "PvC" and play_order is False:
-                            pygame.display.update()
                             x_stone, y_stone = gomoku.computer_move(_stones)
                             board.draw_stone(play_order, x_stone, y_stone)
                             player1_score, player2_score, play_order = gomoku.move(board,_stones, play_order, player1_score, player2_score)

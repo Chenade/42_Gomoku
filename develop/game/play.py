@@ -8,8 +8,6 @@ class Gomoku:
 
     def __init__(self):
         self.type = None
-        # self.board = board
-        # self.setting = self.board.setting
 
     def new_game(self, board, g_type):
         self.g_type = g_type
@@ -37,7 +35,12 @@ class Gomoku:
         self.result = True
         return self.result
 
-    # def check_legal(self, stone, color_name):
+    def check_legal(self, x_stone, y_stone):
+        if x_stone is not None and y_stone is not None:
+            if self._stones[y_stone, x_stone] == 0:
+                # todo: add check double three
+                return True
+        return False
 
     def move(self, board, stones, play_order, player1_score, player2_score):
         self.stones, self.play_order = stones, play_order
@@ -76,6 +79,6 @@ class Gomoku:
         while True:
             self.x = random.randint(0, COL - 1)
             self.y = random.randint(0, COL - 1)
-            if self.stones[self.y, self.x] == 0:
+            if self.check_legal(self.x, self.y):
                 self.stones[self.y, self.x] = 2
                 return self.x, self.y

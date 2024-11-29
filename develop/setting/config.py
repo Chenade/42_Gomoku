@@ -17,7 +17,7 @@ class Config:
         self.screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)  # Make the window resizable
         self.w, self.h = self.screen.get_size()
         h = self.h
-        self.screen = pygame.display.set_mode((h * 5 // 4, h * 4 // 5 ))
+        self.screen = pygame.display.set_mode((h * 5 // 4, h * 5 // 6 ))
         self.SIZE = h // (self.COL + 5)
         self.w_h = self.SIZE * (self.COL)
         self.title = title

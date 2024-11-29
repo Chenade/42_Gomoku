@@ -189,4 +189,6 @@ class Board:
     def draw_timer(self, turn_start_time, play_order):
         pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x, self.w_h // 2 + 10 , 200, self.h))
         elapsed_time = (pygame.time.get_ticks() - turn_start_time)
-        self.text_draw(f"Timer: {elapsed_time / 1000:.1f}s", self.panel_x + 110,  self.w_h // 2 + 35, self.setting.palette("blue"), self.SIZE // 2)
+        seconds = elapsed_time / 1000
+        formatted_time = f"{seconds:.1f}".rjust(8)
+        self.text_draw(f"Timer: {formatted_time} s", self.panel_x + 110,  self.w_h // 2 + 30, self.setting.palette("blue"), self.SIZE // 2)

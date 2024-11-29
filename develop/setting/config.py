@@ -11,14 +11,16 @@ class Config:
         pygame.display.set_caption(title)
 
         self.COL = 19
-        self.screen = pygame.display.set_mode()
+        screen_info = pygame.display.Info()
+        screen_width = screen_info.current_w
+        screen_height = screen_info.current_h
+        self.screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)  # Make the window resizable
         self.w, self.h = self.screen.get_size()
         h = self.h
-        self.screen = pygame.display.set_mode((h * 5 // 4, h - 300))
+        self.screen = pygame.display.set_mode((h * 5 // 4, h * 4 // 5 ))
         self.SIZE = h // (self.COL + 5)
         self.w_h = self.SIZE * (self.COL)
         self.title = title
-        # self.screen = pygame.display.set_mode((2100, self.w_h + self.SIZE))
         self.screen.fill(self.palette("board"))
 
     def palette(self, color):

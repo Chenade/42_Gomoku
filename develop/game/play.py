@@ -8,19 +8,27 @@ class Gomoku:
 
     def __init__(self):
         self.type = None
+        self.g_type = None
+
+    def init_board(self):
+        self._stones = {}
+        for i in range(COL):
+            for j in range(COL):
+                self._stones[i, j] = 0
+        self.play_order = True
 
     def new_game(self, board, g_type):
         self.g_type = g_type
         board.draw_board()
         board.draw_score(0, 0)
         self.g_type = g_type
-        
-        self._stones = {}
-        for i in range(COL):
-            for j in range(COL):
-                self._stones[i, j] = 0
         self.play_order = True
+        self.init_board()
         return self._stones, self.play_order
+    
+    def clean(self):
+        self.g_type = None
+        self.init_board()
 
     def check_win(self, _stones):
         self.result = False

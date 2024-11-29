@@ -22,7 +22,7 @@ if __name__ == "__main__":
     while True:
         event = pygame.event.poll()
         board.draw_button(play_order)
-        board.draw_title(play_order)
+        board.draw_title(gomoku.g_type)
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
@@ -35,20 +35,21 @@ if __name__ == "__main__":
                     _stones, play_order = gomoku.new_game(board, "PvP")
                     turn_start_time = pygame.time.get_ticks()  # Initialize timer
                     board.draw_player(gomoku.g_type, play_order)
-                    board.text_draw("GAME START - Player against Player", board.w_h // 2, 50, setting.palette("green"), 35)
+                    # board.text_draw("GAME START - Player against Player", board.w_h // 2, 50, setting.palette("green"), 35)
 
                 if board.click_button() == "start_pvc":
                     player1_score, player2_score = 0, 0
                     _stones, play_order = gomoku.new_game(board, "PvC")
                     turn_start_time = pygame.time.get_ticks()  # Initialize timer
                     board.draw_player(gomoku.g_type, play_order)
-                    board.text_draw("GAME START - Player against Computer", board.w_h // 2, 50, setting.palette("green"), 35)
+                    # board.text_draw("GAME START - Player against Computer", board.w_h // 2, 50, setting.palette("green"), 35)
 
             else:
                 # restart the game
                 if board.click_button() == "quit":
                     play_order = None
                     board.clean_board()
+                    gomoku.clean()
 
                 if gomoku.g_type == "PvP" or (gomoku.g_type == "PvC" and play_order is True):
                     x_stone, y_stone = board.get_stone_pos()

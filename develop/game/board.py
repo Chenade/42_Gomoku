@@ -16,6 +16,8 @@ class Board:
         self.SIZE = self.setting.SIZE
         self.w_h = self.setting.w_h
         self.panel_x = self.SIZE * (self.COL + 3)
+        self.player1_score = 0
+        self.player2_score = 0
 
     def text_draw(self, text, x_pos, y_pos, font_color, font_size):
         self.text = text
@@ -48,6 +50,8 @@ class Board:
 
     def clean_board(self):
         self.screen.fill(self.setting.palette("board"))
+        self.player1_score = 0
+        self.player2_score = 0
 
     def draw_board(self):
         self.screen.fill(self.setting.palette("board"))
@@ -58,7 +62,7 @@ class Board:
             pygame.draw.line(self.screen, self.setting.palette("black"),
                              [self.SIZE, self.SIZE * i], [self.w_h, self.SIZE * i], 2)
 
-    def draw_player(self, g_type, play_order):
+    def draw_player(self, g_type, play_order, player1_score, player2_score):
         if g_type == "PvP":
             if play_order:
                 self.text_draw("PLAYER 1",self.panel_x + 120, self.w_h // 2 - 100, self.setting.palette("red"), SIZE // 3)
@@ -73,13 +77,20 @@ class Board:
             elif not play_order:
                 self.text_draw("PLAYER",self.panel_x + 120, self.w_h // 2 - 100, self.setting.palette("black"), SIZE // 3)
                 self.text_draw("COMPUTER",self.panel_x + 120, self.w_h // 2 + 100, self.setting.palette("red"), SIZE // 3)
-            
-    def draw_score(self, player1_score, player2_score):
-        self.player1_score, self.player2_score = player1_score, player2_score
+
         pygame.draw.circle(self.screen, self.setting.palette("black"), (self.panel_x, self.w_h // 2 - 50), SIZE // 5)
-        self.text_draw(str(self.player1_score),self.panel_x + 120, self.w_h // 2 - 40, (100, 100, 100), SIZE)
         pygame.draw.circle(self.screen, self.setting.palette("white"), (self.panel_x, self.w_h // 2 + 150), SIZE//5)
-        self.text_draw(str(self.player2_score),self.panel_x + 120, self.w_h // 2 + 150, self.setting.palette("black"), SIZE)
+        
+        # Draw score
+        # if player1_score != self.player1_score:
+        pygame.draw.rect(self.screen, self.setting.palette("board"), (self.panel_x + 70, self.w_h // 2 - 80 , 80, 80))
+        self.text_draw(str(self.player1_score),self.panel_x + 120, self.w_h // 2 - 40, (100, 100, 100), SIZE)
+        
+        # if player2_score != self.player2_score:
+        pygame.draw.rect(self.screen, self.setting.palette("board"), (self.panel_x + 70, self.w_h // 2 + 120 , 80, 80))
+        self.text_draw(str(self.player2_score),self.panel_x + 120, self.w_h // 2 + 160, self.setting.palette("black"), SIZE)
+        
+        self.player1_score, self.player2_score = player1_score, player2_score
 
     def click_button(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()

@@ -8,6 +8,7 @@ class Gomoku:
     def __init__(self, config):
         self.type = None
         self.g_type = None
+        self._stones = {}
         COL = config.COL
 
     def init_board(self):
@@ -20,11 +21,10 @@ class Gomoku:
     def new_game(self, board, g_type):
         self.g_type = g_type
         board.draw_board()
-        board.draw_score(0, 0)
         self.g_type = g_type
         self.play_order = True
         self.init_board()
-        return self._stones, self.play_order
+        return self.play_order
     
     def clean(self):
         self.g_type = None
@@ -46,6 +46,8 @@ class Gomoku:
                 if count >= 5:
                     return True
             return False
+
+        # todo: add check breakable by capture
 
         # Horizontal check
         for i in range(rows):
@@ -89,49 +91,55 @@ class Gomoku:
         self.result = True
         return self.result
 
-    def check_legal(self, x_stone, y_stone):
+    def check_legal(self, x_stone, y_stone, play_order):
         if x_stone is not None and y_stone is not None:
             if self._stones[y_stone, x_stone] == 0:
                 # todo: add check double three
+                self._stones[y_stone, x_stone] = (1 if play_order else 2)
                 return True
         return False
 
-    def move(self, board, stones, play_order, player1_score, player2_score):
-        self.stones, self.play_order = stones, play_order
+    def check_capture(self, _stones):
+        # todo: check captures stone's count
+        return 1
+
+    def move(self, x_stone, y_stone, play_order, player1_score, player2_score):
+        self.play_order = play_order
         self.player1_score, self.player2_score = player1_score, player2_score
-        self.result = None
+        result = None
 
-        check_draw = self.check_draw(self.stones)
+        captures = self.check_capture(self._stones)
+        if captures > 0:
+            if not play_order:
+                self.player1_score += captures
+            else:
+                self.player2_score += captures
+
+        check_draw = self.check_draw(self._stones)
         if check_draw:
-            board.draw_result(self.g_type, self.play_order, "DRAW")
-            self.result = True
-            self.play_order = None
-            return self.player1_score, self.player2_score, None
+            result = "DRAW"
+            return self.player1_score, self.player2_score, self.play_order, result
 
-        check_win = self.check_win(self.stones)
+        check_win = self.check_win(self._stones)
         if check_win:
-            board.draw_result(self.g_type, self.play_order, "WIN")
-            self.result = True
-            self.play_order = None
-            return self.player1_score, self.player2_score, None
+            result = "WIN"
+            return self.player1_score, self.player2_score, self.play_order, result
            
         self.print_stones()
         self.play_order = not self.play_order
-        return self.player1_score, self.player2_score, self.play_order
+        return self.player1_score, self.player2_score, self.play_order, result
 
     def print_stones(self):
         for i in range(COL):
             for j in range(COL):
-                print(self.stones[i, j], end=" ")
+                print(self._stones[i, j], end=" ")
             print()
         print()
 
-    def computer_move(self, stones):
-        self.stones = stones
+    def computer_move(self):
         # pygame.time.delay(1000)
         while True:
             self.x = random.randint(0, COL - 1)
             self.y = random.randint(0, COL - 1)
-            if self.check_legal(self.x, self.y):
-                self.stones[self.y, self.x] = 2
+            if self.check_legal(self.x, self.y, False):
                 return self.x, self.y

@@ -2,13 +2,13 @@ import pygame
 import random
 
 COL = 19
-SIZE = 80
 
 class Gomoku:
 
-    def __init__(self):
+    def __init__(self, config):
         self.type = None
         self.g_type = None
+        COL = config.COL
 
     def init_board(self):
         self._stones = {}
@@ -32,7 +32,53 @@ class Gomoku:
 
     def check_win(self, _stones):
         self.result = False
+        rows, cols = COL, COL
+
+        def has_continuous_sequence(line):
+            count = 0
+            last_value = None
+            for value in line:
+                if value == last_value and value != 0:
+                    count += 1
+                else:
+                    count = 1
+                    last_value = value
+                if count >= 5:
+                    return True
+            return False
+
+        # Horizontal check
+        for i in range(rows):
+            row = [ _stones[i, j] for j in range(cols)]
+            if has_continuous_sequence(row):
+                self.result = True
+                return self.result
+
+        # Vertical check
+        for j in range(cols):
+            column = [ _stones[i, j] for i in range(rows)]
+            if has_continuous_sequence(column):
+                self.result = True
+                return self.result
+
+        # Diagonal check (left to right)
+        for i in range(rows - 5):
+            for j in range(cols - 5):
+                diagonal = [ _stones[i+k, j+k] for k in range(6)]
+                if has_continuous_sequence(diagonal):
+                    self.result = True
+                    return self.result
+
+        # Diagonal check (right to left)
+        for i in range(rows - 5):
+            for j in range(5, cols):
+                diagonal = [ _stones[i+k, j-k] for k in range(6)]
+                if has_continuous_sequence(diagonal):
+                    self.result = True
+                    return self.result
+
         return self.result
+
 
     def check_draw(self, _stones):
         self.result = False
@@ -57,17 +103,16 @@ class Gomoku:
 
         check_draw = self.check_draw(self.stones)
         if check_draw:
+            board.draw_result(self.g_type, self.play_order, "DRAW")
             self.result = True
             self.play_order = None
-            board.draw_result(self.g_type, self.play_order, "DRAW")
             return self.player1_score, self.player2_score, None
 
         check_win = self.check_win(self.stones)
         if check_win:
+            board.draw_result(self.g_type, self.play_order, "WIN")
             self.result = True
             self.play_order = None
-            self.player_score += 1
-            board.draw_result(self.g_type, self.play_order, "WIN")
             return self.player1_score, self.player2_score, None
            
         self.print_stones()

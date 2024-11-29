@@ -101,18 +101,18 @@ class Board:
 
         return None  # No button clicked
 
-    def draw_button(self, play_order=None):
+    def draw_button(self, g_type=None):
         shift_x = self.SIZE * 13 // 9   
         shift_y = self.SIZE // 2
 
         width, height = self.screen.get_size()
-        self.x = width // 2 - self.SIZE * 3 // 2 if play_order is None else self.panel_x
-        self.y = height // 2 - self.SIZE * 5 // 4 if play_order is None else self.SIZE * 2
+        self.x = width // 2 - self.SIZE * 3 // 2 if g_type is None else width - self.SIZE * 4
+        self.y = height // 2 - self.SIZE * 5 // 4 if g_type is None else self.SIZE * 2
         self.w, self.h = self.SIZE * 3, self.SIZE
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
-        if play_order is None:
+        if g_type is None:
             loc = (self.x, self.y)
             if self.x <= mouse_x <= self.x + self.w and self.y <= mouse_y <= self.y + self.h:
                 pygame.draw.rect(self.screen, self.setting.palette("ac_button"), (loc[0], loc[1], self.w, self.h))
@@ -137,7 +137,7 @@ class Board:
                 self.text_draw("RESTART", self.x + shift_x, quit_text_y, self.setting.palette("red"), self.COL)
             else:
                 pygame.draw.rect(self.screen, self.setting.palette("button"), (quit_loc[0], quit_loc[1], self.w, self.h))
-                self.text_draw("QUIT", self.x + shift_x, quit_text_y, self.setting.palette("btn_text"), self.COL)
+                self.text_draw("MENU", self.x + shift_x, quit_text_y, self.setting.palette("btn_text"), self.COL)
 
     def get_stone_pos(self):
 
@@ -170,21 +170,24 @@ class Board:
         pygame.draw.circle(self.screen, self.stone_color, loc, self.SIZE // 2)
 
     def draw_result(self, g_type, play_order, text):
+        pygame.draw.rect(self.screen, self.setting.palette("white"), ( self.w_h + 2, self.w_h - self.SIZE * 4, 500, self.SIZE * 2))
+        
+        loc_text = (self.panel_x + 100,  self.w_h - self.SIZE * 3)
         if text == "DRAW":
-            self.text_draw("DRAW", self.panel_x + 100, self.w_h - self.SIZE * 4, self.setting.palette("green"), self.SIZE)
+            self.text_draw("DRAW",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)
             return None
 
         if g_type == "PvP":
             if play_order == False:
-                self.text_draw(f"Player1 {text}", self.panel_x + 100, self.w_h - self.SIZE * 4, self.setting.palette("green"), self.SIZE)
+                self.text_draw(f"Player1 {text}",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)
             elif play_order == True:
-                self.text_draw(f"Player2 {text}", self.panel_x + 100, self.w_h - self.SIZE * 4, self.setting.palette("green"), self.SIZE)  
+                self.text_draw(f"Player2 {text}",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)  
 
         elif g_type == "PvC":
             if play_order == False:
-                self.text_draw(f"Player {text}", self.panel_x + 100, self.w_h - self.SIZE * 4, self.setting.palette("green"), self.SIZE)
+                self.text_draw(f"Computer {text}", loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE - 10)
             elif play_order == True:
-                self.text_draw(f"Computer {text}", self.panel_x + 150, self.w_h - self.SIZE * 4, self.setting.palette("green"), self.SIZE - 10)
+                self.text_draw(f"Player {text}",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)
             
     def draw_timer(self, turn_start_time, play_order):
         pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x, self.w_h // 2 + 10 , 200, self.h))

@@ -1,7 +1,7 @@
 import pygame  
 import random
-
-COL = 19
+from game.rule_win import check_win
+from game.rule_capture import check_capture
 
 class Gomoku:
 
@@ -9,12 +9,12 @@ class Gomoku:
         self.type = None
         self.g_type = None
         self._stones = {}
-        COL = config.COL
+        self.COL = config.COL
 
     def init_board(self):
         self._stones = {}
-        for i in range(COL):
-            for j in range(COL):
+        for i in range(self.COL):
+            for j in range(self.COL):
                 self._stones[i, j] = 0
         self.play_order = True
 
@@ -30,62 +30,10 @@ class Gomoku:
         self.g_type = None
         self.init_board()
 
-    def check_win(self, _stones):
-        self.result = False
-        rows, cols = COL, COL
-
-        def has_continuous_sequence(line):
-            count = 0
-            last_value = None
-            for value in line:
-                if value == last_value and value != 0:
-                    count += 1
-                else:
-                    count = 1
-                    last_value = value
-                if count >= 5:
-                    return True
-            return False
-
-        # todo: add check breakable by capture
-
-        # Horizontal check
-        for i in range(rows):
-            row = [ _stones[i, j] for j in range(cols)]
-            if has_continuous_sequence(row):
-                self.result = True
-                return self.result
-
-        # Vertical check
-        for j in range(cols):
-            column = [ _stones[i, j] for i in range(rows)]
-            if has_continuous_sequence(column):
-                self.result = True
-                return self.result
-
-        # Diagonal check (left to right)
-        for i in range(rows - 5):
-            for j in range(cols - 5):
-                diagonal = [ _stones[i+k, j+k] for k in range(6)]
-                if has_continuous_sequence(diagonal):
-                    self.result = True
-                    return self.result
-
-        # Diagonal check (right to left)
-        for i in range(rows - 5):
-            for j in range(5, cols):
-                diagonal = [ _stones[i+k, j-k] for k in range(6)]
-                if has_continuous_sequence(diagonal):
-                    self.result = True
-                    return self.result
-
-        return self.result
-
-
     def check_draw(self, _stones):
         self.result = False
-        for i in range(COL):
-            for j in range(COL):
+        for i in range(self.COL):
+            for j in range(self.COL):
                 if _stones[i, j] == 0:
                     return self.result
         self.result = True
@@ -99,39 +47,27 @@ class Gomoku:
                 return True
         return False
 
-    def check_capture(self, _stones):
-        # todo: check captures stone's count
-        return 1
+    # return player1_score, player2_score_play_order, result(text)
+    def move(self, x_stone, y_stone, player1_score, player2_score):
+        if self.play_order:
+            player1_score += check_capture(self._stones, self.COL, self.COL)
+        else:
+            player2_score += check_capture(self._stones, self.COL, self.COL)
 
-    def move(self, x_stone, y_stone, play_order, player1_score, player2_score):
-        self.play_order = play_order
-        self.player1_score, self.player2_score = player1_score, player2_score
-        result = None
+        if player1_score > 4  or player2_score > 4 or \
+            check_win(self._stones, self.COL, self.COL):
+            return player1_score, player2_score, self.play_order, "WIN"
+        
+        if self.check_draw(self._stones):
+            return player1_score, player2_score, self.play_order, "DRAW"
 
-        captures = self.check_capture(self._stones)
-        if captures > 0:
-            if not play_order:
-                self.player1_score += captures
-            else:
-                self.player2_score += captures
-
-        check_draw = self.check_draw(self._stones)
-        if check_draw:
-            result = "DRAW"
-            return self.player1_score, self.player2_score, self.play_order, result
-
-        check_win = self.check_win(self._stones)
-        if check_win:
-            result = "WIN"
-            return self.player1_score, self.player2_score, self.play_order, result
-           
         self.print_stones()
         self.play_order = not self.play_order
-        return self.player1_score, self.player2_score, self.play_order, result
+        return player1_score, player2_score, self.play_order, None
 
     def print_stones(self):
-        for i in range(COL):
-            for j in range(COL):
+        for i in range(self.COL):
+            for j in range(self.COL):
                 print(self._stones[i, j], end=" ")
             print()
         print()
@@ -139,7 +75,7 @@ class Gomoku:
     def computer_move(self):
         # pygame.time.delay(1000)
         while True:
-            self.x = random.randint(0, COL - 1)
-            self.y = random.randint(0, COL - 1)
+            self.x = random.randint(0, self.COL - 1)
+            self.y = random.randint(0, self.COL - 1)
             if self.check_legal(self.x, self.y, False):
                 return self.x, self.y

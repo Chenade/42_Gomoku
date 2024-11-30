@@ -49,11 +49,11 @@ venv/touchfile: requirements.txt
 	virtualenv $(VENV)
 	@echo ${GREEN2}"\nVirtual Environment Created Successfully"${X}"\n\n"
 	. $(BIN)activate; pip install -Ur requirements.txt
-	@echo ${GREEN2}"\nInstall Requirements Successfully"${X}"\n"
+	@echo ${GREEN2}"\nRequirements Installed Successfully"${X}"\n"
 	@touch venv/touchfile
 
 $(NAME):	
-	@echo ${BLUE2}"\nStarting Gomoku"${X}
+	@echo ${BLUE2}"\nStarting Gomoku......"${X}
 	$(VENV_PYTHON) main.py
 
 clean:

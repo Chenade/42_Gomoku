@@ -82,35 +82,32 @@ class Board:
         pygame.draw.circle(self.screen, self.setting.palette("white"), (self.panel_x, self.w_h // 2 + 150), SIZE//5)
         
         # Draw score
-        # if player1_score != self.player1_score:
-        pygame.draw.rect(self.screen, self.setting.palette("board"), (self.panel_x + 70, self.w_h // 2 - 80 , 80, 80))
-        self.text_draw(str(self.player1_score),self.panel_x + 120, self.w_h // 2 - 40, (100, 100, 100), SIZE)
+        if player1_score != self.player1_score or player1_score == 0:
+            pygame.draw.rect(self.screen, self.setting.palette("board"), (self.panel_x + 70, self.w_h // 2 - 80 , 80, 80))
+            self.text_draw(str(player1_score),self.panel_x + 120, self.w_h // 2 - 40, (100, 100, 100), SIZE)
         
-        # if player2_score != self.player2_score:
-        pygame.draw.rect(self.screen, self.setting.palette("board"), (self.panel_x + 70, self.w_h // 2 + 120 , 80, 80))
-        self.text_draw(str(self.player2_score),self.panel_x + 120, self.w_h // 2 + 160, self.setting.palette("black"), SIZE)
-        
+        if player2_score != self.player2_score or player2_score == 0:
+            pygame.draw.rect(self.screen, self.setting.palette("board"), (self.panel_x + 70, self.w_h // 2 + 120 , 80, 80))
+            self.text_draw(str(player2_score),self.panel_x + 120, self.w_h // 2 + 160, self.setting.palette("black"), SIZE)
+            
         self.player1_score, self.player2_score = player1_score, player2_score
 
     def click_button(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
-        # Check for PvP button click
         if self.x <= mouse_x <= self.x + self.w and self.y <= mouse_y <= self.y + self.h:
-            if pygame.mouse.get_pressed()[0]:  # Check if left mouse button is clicked
+            if pygame.mouse.get_pressed()[0]:
                 return "start_pvp"
 
-        # Check for PVC button click
         if self.x <= mouse_x <= self.x + self.w and self.y + self.SIZE * 2 <= mouse_y <= self.y + self.SIZE * 2 + self.h:
-            if pygame.mouse.get_pressed()[0]:  # Check if left mouse button is clicked
+            if pygame.mouse.get_pressed()[0]:
                 return "start_pvc"
 
-        # Check for Quit button click
         if self.x <= mouse_x <= self.x + self.w and self.w_h - self.SIZE <= mouse_y <= self.w_h - self.SIZE + self.h:
-            if pygame.mouse.get_pressed()[0]:  # Check if left mouse button is clicked
+            if pygame.mouse.get_pressed()[0]:
                 return "quit"
 
-        return None  # No button clicked
+        return None
 
     def draw_button(self, g_type=None):
         shift_x = self.SIZE * 13 // 9   
@@ -189,16 +186,16 @@ class Board:
             return None
 
         if g_type == "PvP":
-            if play_order == False:
+            if play_order:
                 self.text_draw(f"Player1 {text}",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)
-            elif play_order == True:
+            else:
                 self.text_draw(f"Player2 {text}",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)  
 
         elif g_type == "PvC":
-            if play_order == False:
-                self.text_draw(f"Computer {text}", loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE - 10)
-            elif play_order == True:
+            if play_order:
                 self.text_draw(f"Player {text}",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)
+            else:
+                self.text_draw(f"Computer {text}", loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE - 10)
             
     def draw_timer(self, turn_start_time, play_order):
         pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x, self.w_h // 2 + 10 , 200, self.h))

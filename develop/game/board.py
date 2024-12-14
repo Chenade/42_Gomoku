@@ -167,15 +167,25 @@ class Board:
         else:
             return None, None
 
-    def draw_stone(self, play_order, x_stone, y_stone):
-        if play_order:
-            self.stone_color = self.setting.palette("black")
-        else:
-            self.stone_color = self.setting.palette("white")
+    def draw_stone(self, color, x_stone, y_stone):
+        stone_color = self.setting.palette(color)
+        # if play_order:
+        #     self.stone_color = self.setting.palette("black")
+        # else:
+        #     self.stone_color = self.setting.palette("white")
 
         self.x_stone, self.y_stone = x_stone, y_stone
         loc = ((self.x_stone + 1) * self.SIZE, (self.y_stone + 1) * self.SIZE)
-        pygame.draw.circle(self.screen, self.stone_color, loc, self.SIZE // 2)
+        pygame.draw.circle(self.screen, stone_color, loc, self.SIZE // 2)
+
+    def remove_stone(self, x_stone, y_stone):
+        loc = ((x_stone + 1) * self.SIZE, (y_stone + 1) * self.SIZE)
+        pygame.draw.circle(self.screen, self.setting.palette("board"), loc, self.SIZE // 2)
+        #draw vertical and horizontal lines just for the removed stone
+        pygame.draw.line(self.screen, self.setting.palette("black"),
+                         [loc[0] - self.SIZE // 2, loc[1]], [loc[0] + self.SIZE // 2, loc[1]], 2)
+        pygame.draw.line(self.screen, self.setting.palette("black"),
+                            [loc[0], loc[1] - self.SIZE // 2], [loc[0], loc[1] + self.SIZE // 2], 2)
 
     def draw_result(self, g_type, play_order, text):
         pygame.draw.rect(self.screen, self.setting.palette("white"), ( self.w_h + 2, self.w_h - self.SIZE * 4, 500, self.SIZE * 2))

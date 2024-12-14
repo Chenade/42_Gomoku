@@ -5,6 +5,8 @@ import time
 class AIPlayer:
     def __init__(self, depth=3):
         self.depth = depth
+        self.tree_representation = []  # Tree structure for visualization
+
 
     def minimax(self, position, depth, alpha, beta, current_player):
         """
@@ -117,6 +119,7 @@ class AIPlayer:
         for x in range(len(position)):
             for y in range(len(position[0])):
                 if self.check_five_in_a_row(position, x, y):
+                    print("Game Over", x, y)
                     return True
 
         if all(cell != 0 for row in position for cell in row):
@@ -125,10 +128,15 @@ class AIPlayer:
         return False
 
     def check_five_in_a_row(self, position, x, y):
+        if position[x][y] == 0:  # 空きマスではチェックしない
+            return False
+
         directions = [(1, 0), (0, 1), (1, 1), (1, -1)]  # 横, 縦, 斜め
         for dx, dy in directions:
-            count = 0
-            for i in range(5):  # 5マス先までチェック
+            count = 1  # 現在の石をカウント
+
+            # 正方向をカウント
+            for i in range(1, 5):
                 nx, ny = x + i * dx, y + i * dy
                 if (
                     0 <= nx < len(position)
@@ -138,9 +146,24 @@ class AIPlayer:
                     count += 1
                 else:
                     break
-            if count == 5:
+
+            # 逆方向をカウント
+            for i in range(1, 5):
+                nx, ny = x - i * dx, y - i * dy
+                if (
+                    0 <= nx < len(position)
+                    and 0 <= ny < len(position[0])
+                    and position[nx][ny] == position[x][y]
+                ):
+                    count += 1
+                else:
+                    break
+
+            # 5連以上が揃ったら勝利
+            if count >= 5:
                 return True
         return False
+
 
     def get_top_moves(self, position, current_player, top_n=3):
         """
@@ -167,6 +190,49 @@ class AIPlayer:
         # (ScoreA) > (ScoreB)
         scored_moves.sort(key=lambda x: x[0], reverse=True)
         return scored_moves[:top_n]
+    
+
+    def minimax_with_tree(self, position, depth, alpha, beta, current_player, level=0, parent="Root"):
+        """
+        Modified minimax algorithm to log scores at each level for tree visualization.
+        """
+        if depth == 0 or self.is_game_over(position):
+            score = self.evaluate_position(position)
+            self.tree_representation.append(
+                f"{' ' * (2 * level)}[Depth {level}] {parent} -> Score: {score}"
+            )
+            return score
+
+        maximizing_player = current_player == -1
+        best_score = float("-inf") if maximizing_player else float("inf")
+
+        for child, x, y in self.generate_children(position, current_player):
+            child_id = f"Move ({x}, {y})"
+            score = self.minimax_with_tree(child, depth - 1, alpha, beta, -current_player, level + 1, child_id)
+
+            if maximizing_player:
+                best_score = max(best_score, score)
+                alpha = max(alpha, best_score)
+            else:
+                best_score = min(best_score, score)
+                beta = min(beta, best_score)
+
+            if beta <= alpha:
+                break
+
+        self.tree_representation.append(
+            f"{' ' * (2 * level)}[Depth {level}] {parent} -> Best Score: {best_score}"
+        )
+        return best_score
+
+    def save_tree_to_file(self, filename):
+        """
+        Save the tree representation to a file.
+        """
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("\n".join(self.tree_representation))
+
+
 
 
 # Example usage:
@@ -188,6 +254,30 @@ if __name__ == "__main__":
 
     # Create an AIPlayer instance
     ai = AIPlayer(depth=3)
+
+
+    # Create a score visualization board
+    position = np.array(sample_board)
+    score_board = np.zeros_like(position, dtype=float)
+
+    # Fill the score board
+    for x in range(position.shape[0]):
+        for y in range(position.shape[1]):
+            if position[x, y] == 0:  # Evaluate only empty cells
+                test_position = position.copy()
+                test_position[x, y] = -1  # Assume AI (-1) places a stone
+                score_board[x, y] = ai.evaluate_position(test_position)
+
+    # Convert the score board to a string representation
+    score_board_str = ''
+    for row in score_board:
+        score_board_str += ' '.join(f"{cell:6.1f}" for cell in row) + '\n'
+
+    # Save the score board to a file
+    with open('./test/score_board.txt', 'w', encoding='utf-8') as f:
+        f.write(score_board_str)
+
+    print("Score visualization saved to './test/score_board.txt'")
 
     # Get the top 3 moves for the AI player
     start_time = time.time()
@@ -222,3 +312,11 @@ if __name__ == "__main__":
     # Save the marked board to a file
     with open('./test/marked_board.txt', 'w', encoding='utf-8') as f:
         f.write(board_str)
+
+    
+    
+    #bestScore = ai.minimax_with_tree(sample_board, depth=3, alpha=float("-inf"), beta=float("inf"), current_player=-1)
+    #print(f"Best Score: {bestScore}")
+    #ai.save_tree_to_file('./test/tree_structure.txt')
+    
+    #print("Tree structure saved to './test/tree_structure.txt'")

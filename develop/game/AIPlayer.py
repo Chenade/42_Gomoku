@@ -252,32 +252,35 @@ if __name__ == "__main__":
     # Load the sample board from file
     sample_board = load_board('./test/sample.txt')
 
+    # for row in sample_board:
+    #     print(row)
+
     # Create an AIPlayer instance
     ai = AIPlayer(depth=3)
 
 
-    # Create a score visualization board
-    position = np.array(sample_board)
-    score_board = np.zeros_like(position, dtype=float)
+    # # Create a score visualization board
+    # position = np.array(sample_board)
+    # score_board = np.zeros_like(position, dtype=float)
 
-    # Fill the score board
-    for x in range(position.shape[0]):
-        for y in range(position.shape[1]):
-            if position[x, y] == 0:  # Evaluate only empty cells
-                test_position = position.copy()
-                test_position[x, y] = -1  # Assume AI (-1) places a stone
-                score_board[x, y] = ai.evaluate_position(test_position)
+    # # Fill the score board
+    # for x in range(position.shape[0]):
+    #     for y in range(position.shape[1]):
+    #         if position[x, y] == 0:  # Evaluate only empty cells
+    #             test_position = position.copy()
+    #             test_position[x, y] = -1  # Assume AI (-1) places a stone
+    #             score_board[x, y] = ai.evaluate_position(test_position)
 
-    # Convert the score board to a string representation
-    score_board_str = ''
-    for row in score_board:
-        score_board_str += ' '.join(f"{cell:6.1f}" for cell in row) + '\n'
+    # # Convert the score board to a string representation
+    # score_board_str = ''
+    # for row in score_board:
+    #     score_board_str += ' '.join(f"{cell:6.1f}" for cell in row) + '\n'
 
-    # Save the score board to a file
-    with open('./test/score_board.txt', 'w', encoding='utf-8') as f:
-        f.write(score_board_str)
+    # # Save the score board to a file
+    # with open('./test/score_board.txt', 'w', encoding='utf-8') as f:
+    #     f.write(score_board_str)
 
-    print("Score visualization saved to './test/score_board.txt'")
+    # print("Score visualization saved to './test/score_board.txt'")
 
     # Get the top 3 moves for the AI player
     start_time = time.time()

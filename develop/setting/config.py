@@ -26,8 +26,12 @@ class Config:
     def palette(self, color):
         if color == "black":
             return (0, 0, 0)
+        elif color == "_black":
+            return (50, 50, 50)
         elif color == "white":
             return (255, 255, 255)
+        elif color == "_white":
+            return (200, 200, 200)
         elif color == "red":
             return (255, 0, 0)
         elif color == "green":

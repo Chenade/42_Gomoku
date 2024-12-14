@@ -117,6 +117,7 @@ class AIPlayer:
         for x in range(len(position)):
             for y in range(len(position[0])):
                 if self.check_five_in_a_row(position, x, y):
+                    print("Game Over", x, y)
                     return True
 
         if all(cell != 0 for row in position for cell in row):
@@ -125,10 +126,15 @@ class AIPlayer:
         return False
 
     def check_five_in_a_row(self, position, x, y):
+        if position[x][y] == 0:  # 空きマスではチェックしない
+            return False
+
         directions = [(1, 0), (0, 1), (1, 1), (1, -1)]  # 横, 縦, 斜め
         for dx, dy in directions:
-            count = 0
-            for i in range(5):  # 5マス先までチェック
+            count = 1  # 現在の石をカウント
+
+            # 正方向をカウント
+            for i in range(1, 5):
                 nx, ny = x + i * dx, y + i * dy
                 if (
                     0 <= nx < len(position)
@@ -138,9 +144,24 @@ class AIPlayer:
                     count += 1
                 else:
                     break
-            if count == 5:
+
+            # 逆方向をカウント
+            for i in range(1, 5):
+                nx, ny = x - i * dx, y - i * dy
+                if (
+                    0 <= nx < len(position)
+                    and 0 <= ny < len(position[0])
+                    and position[nx][ny] == position[x][y]
+                ):
+                    count += 1
+                else:
+                    break
+
+            # 5連以上が揃ったら勝利
+            if count >= 5:
                 return True
         return False
+
 
     def get_top_moves(self, position, current_player, top_n=3):
         """
@@ -188,6 +209,30 @@ if __name__ == "__main__":
 
     # Create an AIPlayer instance
     ai = AIPlayer(depth=3)
+
+
+    # Create a score visualization board
+    position = np.array(sample_board)
+    score_board = np.zeros_like(position, dtype=float)
+
+    # Fill the score board
+    for x in range(position.shape[0]):
+        for y in range(position.shape[1]):
+            if position[x, y] == 0:  # Evaluate only empty cells
+                test_position = position.copy()
+                test_position[x, y] = -1  # Assume AI (-1) places a stone
+                score_board[x, y] = ai.evaluate_position(test_position)
+
+    # Convert the score board to a string representation
+    score_board_str = ''
+    for row in score_board:
+        score_board_str += ' '.join(f"{cell:6.1f}" for cell in row) + '\n'
+
+    # Save the score board to a file
+    with open('./test/score_board.txt', 'w', encoding='utf-8') as f:
+        f.write(score_board_str)
+
+    print("Score visualization saved to './test/score_board.txt'")
 
     # Get the top 3 moves for the AI player
     start_time = time.time()

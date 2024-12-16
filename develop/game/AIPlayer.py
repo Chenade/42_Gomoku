@@ -1,11 +1,12 @@
 import numpy as np
 import time
-
+from Node import Node
+from Tree import Tree
 
 class AIPlayer:
     def __init__(self, depth=3):
         self.depth = depth
-        self.tree_representation = []  # Tree structure for visualization
+        self.tree = []
 
 
     def minimax(self, position, depth, alpha, beta, current_player):
@@ -198,7 +199,7 @@ class AIPlayer:
         """
         if depth == 0 or self.is_game_over(position):
             score = self.evaluate_position(position)
-            self.tree_representation.append(
+            self.tree.append(
                 f"{' ' * (2 * level)}[Depth {level}] {parent} -> Score: {score}"
             )
             return score
@@ -220,7 +221,7 @@ class AIPlayer:
             if beta <= alpha:
                 break
 
-        self.tree_representation.append(
+        self.tree.append(
             f"{' ' * (2 * level)}[Depth {level}] {parent} -> Best Score: {best_score}"
         )
         return best_score
@@ -230,7 +231,7 @@ class AIPlayer:
         Save the tree representation to a file.
         """
         with open(filename, "w", encoding="utf-8") as f:
-            f.write("\n".join(self.tree_representation))
+            f.write("\n".join(self.tree))
 
 
 

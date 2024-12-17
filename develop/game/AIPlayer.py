@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
     # Create a board with markers for top moves
     marked_board = [row[:] for row in sample_board]
-    markers = ['A', 'B', 'C']
+    markers = ['①', '②', '③']
     
     # Mark the top moves on the board
     for (score, (x, y)), marker in zip(top_moves, markers):

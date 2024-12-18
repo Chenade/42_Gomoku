@@ -1,4 +1,4 @@
-from Node import Node
+from game.Node import Node
 
 
 class Tree:

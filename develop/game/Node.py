@@ -32,7 +32,7 @@ class Node:
 
     def __repr__(self):
         """String representation for debugging."""
-        return f"Node(Player={self.current_player}, Move=({self.newStoneX}, {self.newStoneY}), Score={self.score})"
+        return f"Node(Player={self.current_player}, Move=({self.x}, {self.y}), Score={self.score})"
 
     def generate_children(self):
         """
@@ -41,23 +41,34 @@ class Node:
         Returns:
             List[Node]: List of child nodes.
         """
-        # Use the convolution-based neighbor check
-        neighbor_mask = self.has_neighbor(self.position)
+        # Define the kernel for neighbor detection
+        kernel = np.ones((3, 3))
+        kernel[1, 1] = 0  # Exclude the center cell
 
+        # Perform convolution to identify cells with neighbors
+        neighbor_mask = (
+            convolve2d(
+                np.abs(self.position), kernel, mode="same", boundary="fill", fillvalue=0
+            )
+            > 0
+        )
+
+        # Identify valid moves: empty cells (self.position == 0) with neighbors
+        valid_moves_mask = (self.position == 0) & neighbor_mask
+
+        # Find indices of valid moves
+        valid_moves = np.argwhere(valid_moves_mask)
+
+        # Generate child nodes based on valid moves
         children = []
-        for x in range(len(self.position)):
-            for y in range(len(self.position[0])):
-                if self.position[x][y] == 0 and neighbor_mask[x, y]:
-                    # Generate a new position with the current player's move
-                    new_position = np.copy(self.position)
-                    new_position[x][y] = self.current_player
-                    # Create a new child node
-                    child_node = Node(
-                        new_position, -self.current_player, x, y, parent=self
-                    )
-                    children.append(child_node)
+        for x, y in valid_moves:
+            new_position = np.copy(self.position)
+            new_position[x, y] = self.current_player
+            child_node = Node(new_position, -self.current_player, x, y, parent=self)
+            children.append(child_node)
 
         return children
+
 
     def has_neighbor(self, grid, distance=1):
         """

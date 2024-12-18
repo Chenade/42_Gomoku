@@ -51,11 +51,10 @@ class AIPlayer:
         """
 
         # Create the root node with the padded board
-        root_node = Node(position, current_player)
+        root_node = Node(np.array(position), current_player)
 
         scored_moves = []
         for child in root_node.generate_children():
-            print(child.x, child.y)
             child.score = self.minimax(
                 child,
                 self.depth,

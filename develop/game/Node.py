@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Node:
     def __init__(self, position, current_player, x=None, y=None, parent=None):
         """
@@ -38,10 +41,10 @@ class Node:
             List[Node]: List of child nodes.
         """
         children = []
-        for x in range(len(self.position)):
-            for y in range(len(self.position[0])):
+        for x in range(4, len(self.position) - 4):  # Avoid edges of the padded board
+            for y in range(4, len(self.position[0]) - 4):
                 if self.position[x][y] == 0 and self.has_neighbor(x, y):
-                    new_position = [row[:] for row in self.position]
+                    new_position = np.copy(self.position)
                     new_position[x][y] = self.current_player
                     child_node = Node(
                         new_position, -self.current_player, x, y, parent=self
@@ -66,11 +69,7 @@ class Node:
                 if dx == 0 and dy == 0:
                     continue
                 nx, ny = x + dx, y + dy
-                if (
-                    0 <= nx < len(self.position)
-                    and 0 <= ny < len(self.position[0])
-                    and self.position[nx][ny] != 0
-                ):
+                if self.position[nx][ny] != 0:
                     return True
         return False
 

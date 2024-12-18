@@ -1,6 +1,7 @@
 import time
 from Node import Node
 from Tree import Tree
+import numpy as np
 
 
 class AIPlayer:
@@ -36,13 +37,39 @@ class AIPlayer:
                     break
             return min_eval
 
+    def add_padding(self, board, padding=4):
+        """
+        Add padding to the board.
+
+        Args:
+            board (list of list of int): The original game board.
+            padding (int): Number of layers of padding to add around the board.
+
+        Returns:
+            np.ndarray: The padded board.
+        """
+        board = np.array(board)
+        return np.pad(board, pad_width=padding, mode="constant", constant_values=0)
+
     def get_top_moves(self, position, current_player, top_n=3):
         """
-        Get the top N best moves for the given player
-        """
-        root_node = Node(position, current_player)
-        scored_moves = []
+        Get the top N best moves for the given player.
 
+        Args:
+            position (list of list of int): The current game board.
+            current_player (int): The player making the move (-1 for AI, 1 for human).
+            top_n (int): Number of top moves to return.
+
+        Returns:
+            list: Top N moves as (score, (x, y)).
+        """
+        # Add padding to the board
+        padded_position = self.add_padding(position)
+
+        # Create the root node with the padded board
+        root_node = Node(padded_position, current_player)
+
+        scored_moves = []
         for child in root_node.generate_children():
             child.score = self.minimax(
                 child,
@@ -50,7 +77,9 @@ class AIPlayer:
                 float("-inf"),
                 float("inf"),
             )
-            scored_moves.append((child.score, (child.x, child.y)))
+            # Convert padded coordinates back to the original board coordinates
+            unpadded_x, unpadded_y = child.x - 4, child.y - 4
+            scored_moves.append((child.score, (unpadded_x, unpadded_y)))
 
         scored_moves.sort(key=lambda x: x[0], reverse=True)
         return scored_moves[:top_n]
@@ -70,34 +99,8 @@ if __name__ == "__main__":
     # Load the sample board from file
     sample_board = load_board("./test/sample.txt")
 
-    # for row in sample_board:
-    #     print(row)
-
     # Create an AIPlayer instance
-    ai = AIPlayer(depth=3)
-
-    # # Create a score visualization board
-    # position = np.array(sample_board)
-    # score_board = np.zeros_like(position, dtype=float)
-
-    # # Fill the score board
-    # for x in range(position.shape[0]):
-    #     for y in range(position.shape[1]):
-    #         if position[x, y] == 0:  # Evaluate only empty cells
-    #             test_position = position.copy()
-    #             test_position[x, y] = -1  # Assume AI (-1) places a stone
-    #             score_board[x, y] = ai.evaluate_position(test_position)
-
-    # # Convert the score board to a string representation
-    # score_board_str = ''
-    # for row in score_board:
-    #     score_board_str += ' '.join(f"{cell:6.1f}" for cell in row) + '\n'
-
-    # # Save the score board to a file
-    # with open('./test/score_board.txt', 'w', encoding='utf-8') as f:
-    #     f.write(score_board_str)
-
-    # print("Score visualization saved to './test/score_board.txt'")
+    ai = AIPlayer(depth=0)
 
     # Get the top 3 moves for the AI player
     start_time = time.time()

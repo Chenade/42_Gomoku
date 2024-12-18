@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import convolve2d
 
 
 class Node:
@@ -35,43 +36,48 @@ class Node:
 
     def generate_children(self):
         """
-        Generate all possible child nodes for the current node.
+        Generate all possible child nodes for the current node using convolution-based neighbor check.
 
         Returns:
             List[Node]: List of child nodes.
         """
+        # Use the convolution-based neighbor check
+        neighbor_mask = self.has_neighbor(self.position)
         children = []
         for x in range(4, len(self.position) - 4):  # Avoid edges of the padded board
             for y in range(4, len(self.position[0]) - 4):
-                if self.position[x][y] == 0 and self.has_neighbor(x, y):
+                if self.position[x][y] == 0 and neighbor_mask[x, y]:
                     new_position = np.copy(self.position)
                     new_position[x][y] = self.current_player
                     child_node = Node(
                         new_position, -self.current_player, x, y, parent=self
                     )
                     children.append(child_node)
+
         return children
 
-    def has_neighbor(self, x, y, distance=1):
+    def has_neighbor(self, grid, distance=1):
         """
-        Check if a cell has a neighbor within a given distance.
+        Use convolution to check if each cell has a neighbor.
 
         Args:
-            x (int): X-coordinate of the cell.
-            y (int): Y-coordinate of the cell.
-            distance (int): Distance to check for neighbors.
+            grid (np.ndarray): The current game board (padded).
+            distance (int): The distance to check for neighbors (default=1).
 
         Returns:
-            bool: True if the cell has at least one neighbor.
+            np.ndarray: A boolean mask where True indicates a neighbor is present.
         """
-        for dx in range(-distance, distance + 1):
-            for dy in range(-distance, distance + 1):
-                if dx == 0 and dy == 0:
-                    continue
-                nx, ny = x + dx, y + dy
-                if self.position[nx][ny] != 0:
-                    return True
-        return False
+        # Define the kernel to check for neighbors
+        kernel = np.ones((2 * distance + 1, 2 * distance + 1))
+        kernel[distance, distance] = 0  # Exclude the center cell itself
+
+        # Perform convolution to count neighbors
+        neighbor_count = convolve2d(
+            np.abs(grid), kernel, mode="same", boundary="fill", fillvalue=0
+        )
+
+        # Return a boolean mask where True indicates the presence of at least one neighbor
+        return neighbor_count > 0
 
     def evaluate_position(self):
         """

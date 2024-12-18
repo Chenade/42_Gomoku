@@ -79,6 +79,7 @@ class AIPlayer:
             )
             # Convert padded coordinates back to the original board coordinates
             unpadded_x, unpadded_y = child.x - 4, child.y - 4
+            #print("(", unpadded_x, ",", unpadded_y, ")")
             scored_moves.append((child.score, (unpadded_x, unpadded_y)))
 
         scored_moves.sort(key=lambda x: x[0], reverse=True)

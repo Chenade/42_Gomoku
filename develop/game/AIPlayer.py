@@ -1,6 +1,6 @@
 import time
-from Node import Node
-from Tree import Tree
+from game.Node import Node
+from game.Tree import Tree
 import numpy as np
 
 

@@ -1,6 +1,6 @@
 import pygame, sys
 import time
-from game import Board, Gomoku, AIPlayer
+from game import Board, Gomoku, AIPlayer, Node, Tree
 from setting.config import Config
 
 COL = 19
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     setting.setup("42 Gomoku")
     board = Board(setting)
     gomoku = Gomoku(setting)
-    ai = AIPlayer(depth=3)
+    ai = AIPlayer(depth=0)
 
     while True:
         event = pygame.event.poll()

@@ -37,20 +37,6 @@ class AIPlayer:
                     break
             return min_eval
 
-    def add_padding(self, board, padding=4):
-        """
-        Add padding to the board.
-
-        Args:
-            board (list of list of int): The original game board.
-            padding (int): Number of layers of padding to add around the board.
-
-        Returns:
-            np.ndarray: The padded board.
-        """
-        board = np.array(board)
-        return np.pad(board, pad_width=padding, mode="constant", constant_values=0)
-
     def get_top_moves(self, position, current_player, top_n=3):
         """
         Get the top N best moves for the given player.
@@ -63,14 +49,13 @@ class AIPlayer:
         Returns:
             list: Top N moves as (score, (x, y)).
         """
-        # Add padding to the board
-        padded_position = self.add_padding(position)
 
         # Create the root node with the padded board
-        root_node = Node(padded_position, current_player)
+        root_node = Node(position, current_player)
 
         scored_moves = []
         for child in root_node.generate_children():
+            print(child.x, child.y)
             child.score = self.minimax(
                 child,
                 self.depth,
@@ -78,9 +63,7 @@ class AIPlayer:
                 float("inf"),
             )
             # Convert padded coordinates back to the original board coordinates
-            unpadded_x, unpadded_y = child.x - 4, child.y - 4
-            #print("(", unpadded_x, ",", unpadded_y, ")")
-            scored_moves.append((child.score, (unpadded_x, unpadded_y)))
+            scored_moves.append((child.score, (child.x, child.y)))
 
         scored_moves.sort(key=lambda x: x[0], reverse=True)
         return scored_moves[:top_n]

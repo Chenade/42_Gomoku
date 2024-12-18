@@ -43,12 +43,15 @@ class Node:
         """
         # Use the convolution-based neighbor check
         neighbor_mask = self.has_neighbor(self.position)
+
         children = []
-        for x in range(4, len(self.position) - 4):  # Avoid edges of the padded board
-            for y in range(4, len(self.position[0]) - 4):
+        for x in range(len(self.position)):
+            for y in range(len(self.position[0])):
                 if self.position[x][y] == 0 and neighbor_mask[x, y]:
+                    # Generate a new position with the current player's move
                     new_position = np.copy(self.position)
                     new_position[x][y] = self.current_player
+                    # Create a new child node
                     child_node = Node(
                         new_position, -self.current_player, x, y, parent=self
                     )
@@ -61,7 +64,7 @@ class Node:
         Use convolution to check if each cell has a neighbor.
 
         Args:
-            grid (np.ndarray): The current game board (padded).
+            grid (np.ndarray): The current game board.
             distance (int): The distance to check for neighbors (default=1).
 
         Returns:

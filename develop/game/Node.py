@@ -69,7 +69,6 @@ class Node:
 
         return children
 
-
     def has_neighbor(self, grid, distance=1):
         """
         Use convolution to check if each cell has a neighbor.
@@ -154,50 +153,56 @@ class Node:
         return score
 
     def is_game_over(self):
-        for x in range(len(self.position)):
-            for y in range(len(self.position[0])):
-                if self.check_five_in_a_row(x, y):
-                    print("Game Over", x, y)
-                    return True
+        """
+        Check if the game is over.
 
-        if all(cell != 0 for row in self.position for cell in row):
+        Returns:
+            bool: True if the game is over, False otherwise.
+        """
+        # Check for five in a row for both players
+        if self.check_five_in_a_row_cnn(self.position == 1):  # Check for player 1
+            print("Game Over: Player 1 wins!")
+            return True
+        if self.check_five_in_a_row_cnn(self.position == -1):  # Check for player -1
+            print("Game Over: Player -1 wins!")
+            return True
+
+        # Check if the board is full
+        if np.all(self.position != 0):
+            print("Game Over: Draw!")
             return True
 
         return False
 
-    def check_five_in_a_row(self, x, y):
-        if self.position[x][y] == 0:  # 空きマスではチェックしない
-            return False
+    def check_five_in_a_row_cnn(self, board):
+        """
+        Check if there are five in a row using convolution.
 
-        directions = [(1, 0), (0, 1), (1, 1), (1, -1)]  # 横, 縦, 斜め
-        for dx, dy in directions:
-            count = 1  # 現在の石をカウント
+        Args:
+            board (np.ndarray): The current game board.
 
-            # 正方向をカウント
-            for i in range(1, 5):
-                nx, ny = x + i * dx, y + i * dy
-                if (
-                    0 <= nx < len(self.position)
-                    and 0 <= ny < len(self.position[0])
-                    and self.position[nx][ny] == self.position[x][y]
-                ):
-                    count += 1
-                else:
-                    break
+        Returns:
+            bool: True if there are five in a row, False otherwise.
+        """
+        # Define kernels for different directions
+        horizontal_kernel = np.array([[1, 1, 1, 1, 1]])
+        vertical_kernel = horizontal_kernel.T
+        diagonal_kernel1 = np.eye(5, dtype=int)
+        diagonal_kernel2 = np.fliplr(diagonal_kernel1)
 
-            # 逆方向をカウント
-            for i in range(1, 5):
-                nx, ny = x - i * dx, y - i * dy
-                if (
-                    0 <= nx < len(self.position)
-                    and 0 <= ny < len(self.position[0])
-                    and self.position[nx][ny] == self.position[x][y]
-                ):
-                    count += 1
-                else:
-                    break
+        # Check for five in a row using convolution
+        directions = [
+            horizontal_kernel,
+            vertical_kernel,
+            diagonal_kernel1,
+            diagonal_kernel2,
+        ]
 
-            # 5連以上が揃ったら勝利
-            if count >= 5:
+        for kernel in directions:
+            # Perform convolution for the current direction
+            result = convolve2d(board, kernel, mode="valid")
+            # Check if any cell has a value of 5 (indicating 5 in a row)
+            if np.any(result == 5):
                 return True
+
         return False

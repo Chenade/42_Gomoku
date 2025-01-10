@@ -22,18 +22,6 @@ class Node:
         self.children = []  # List of child nodes
         self.score = None  # Evaluation score
 
-    def add_child(self, child_node):
-        """Add a child node to the current node."""
-        self.children.append(child_node)
-
-    def is_leaf(self):
-        """Check if the node is a leaf node (no children)."""
-        return len(self.children) == 0
-
-    def __repr__(self):
-        """String representation for debugging."""
-        return f"Node(Player={self.current_player}, Move=({self.x}, {self.y}), Score={self.score})"
-
     def generate_children(self):
         """
         Generate all possible child nodes for the current node using convolution-based neighbor check.
@@ -63,7 +51,6 @@ class Node:
                 new_position = self.position.copy()  # Copy only when needed
                 new_position[x, y] = self.current_player
                 yield Node(new_position, -self.current_player, x, y, parent=self)
-
 
     def evaluate_position(self):
         """

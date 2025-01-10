@@ -11,7 +11,7 @@ class AIPlayer:
         Minimax algorithm with alpha-beta pruning.
         """
         if depth == 0 or node.is_game_over():
-            return node.score()
+            return node.score
 
         maximizing_player = node.current_player == 1
 

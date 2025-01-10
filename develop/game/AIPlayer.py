@@ -5,14 +5,13 @@ import numpy as np
 class AIPlayer:
     def __init__(self, depth=3):
         self.depth = depth
-        self.tree = []
 
     def minimax_alpha_beta(self, node, depth, alpha, beta):
         """
         Minimax algorithm with alpha-beta pruning.
         """
         if depth == 0 or node.is_game_over():
-            return node.evaluate_position()
+            return node.score()
 
         maximizing_player = node.current_player == 1
 

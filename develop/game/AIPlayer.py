@@ -4,7 +4,7 @@ import numpy as np
 
 class AIPlayer:
     def __init__(self, depth=3):
-        self.depth = depth
+        self.depth = depth - 1
 
     def minimax_alpha_beta(self, node, depth, alpha, beta):
         """

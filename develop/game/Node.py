@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import convolve2d
 
+
 class Node:
     def __init__(self, position, current_player, x=None, y=None, parent=None):
         """
@@ -19,7 +20,11 @@ class Node:
         self.y = y  # Last move Y-coordinate
         self.parent = parent  # Optional parent node
         self.children = []  # List of child nodes
-        self.score = self.parent.score + self.update_score() if self.parent else self.update_score()
+        self.score = (
+            self.parent.score + self.update_score()
+            if self.parent
+            else self.update_score()
+        )
 
     def generate_children(self):
         """
@@ -64,11 +69,22 @@ class Node:
         k_4 = np.array([[1, 1, 1, 1]])
         k_5 = np.array([[1, 1, 1, 1, 1]])
         kernels = [
-            k_2, k_3, k_4, k_5,
-            k_2.T, k_3.T, k_4.T, k_5.T,
-            np.eye(2, dtype=int), np.eye(3, dtype=int), np.eye(4, dtype=int), np.eye(5, dtype=int),
-            np.fliplr(np.eye(2, dtype=int)), np.fliplr(np.eye(3, dtype=int)),
-            np.fliplr(np.eye(4, dtype=int)), np.fliplr(np.eye(5, dtype=int)),
+            k_2,
+            k_3,
+            k_4,
+            k_5,
+            k_2.T,
+            k_3.T,
+            k_4.T,
+            k_5.T,
+            np.eye(2, dtype=int),
+            np.eye(3, dtype=int),
+            np.eye(4, dtype=int),
+            np.eye(5, dtype=int),
+            np.fliplr(np.eye(2, dtype=int)),
+            np.fliplr(np.eye(3, dtype=int)),
+            np.fliplr(np.eye(4, dtype=int)),
+            np.fliplr(np.eye(5, dtype=int)),
         ]
 
         weights = {2: 10, 3: 100, 4: 1000, 5: 10000}  # スコアリングの重み
@@ -84,12 +100,20 @@ class Node:
         local_board = self.position[xmin:xmax, ymin:ymax]  # 局所的な盤面を取得
 
         for kernel in kernels:
+            # カーネルを適用した結果を計算
             result_ai = convolve2d((local_board == 1).astype(int), kernel, mode="valid")
-            result_human = convolve2d((local_board == -1).astype(int), kernel, mode="valid")
+            result_human = convolve2d(
+                (local_board == -1).astype(int), kernel, mode="valid"
+            )
 
+            # **修正：カーネル全体が特定のプレイヤーの石だけで構成されているかを確認**
             stones = kernel.sum()  # カーネルでチェックする連続石の数
-            score += weights.get(stones, 0) * np.sum(result_ai == stones)  # AIのスコア
-            score -= weights.get(stones, 0) * np.sum(result_human == stones)  # Humanのスコア
+            ai_matches = result_ai == stones  # AIが純粋に連続している部分
+            human_matches = result_human == stones  # Humanが純粋に連続している部分
+
+            # **修正：条件を満たした部分のみスコアに反映**
+            score += weights.get(stones, 0) * np.sum(ai_matches)  # AIのスコア
+            score -= weights.get(stones, 0) * np.sum(human_matches)  # Humanのスコア
 
         return score
 

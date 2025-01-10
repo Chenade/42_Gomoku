@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.signal import convolve2d
 
-
 class Node:
     def __init__(self, position, current_player, x=None, y=None, parent=None):
         """
@@ -9,18 +8,18 @@ class Node:
 
         Args:
             position (list[list[int]]): The current board state.
-            current_player (int): The current player (-1 for AI, 1 for human).
+            current_player (int): The current player (1 for AI, -1 for human).
             x (int, optional): X-coordinate of the new stone placed. Defaults to None.
             y (int, optional): Y-coordinate of the new stone placed. Defaults to None.
             parent (Node, optional): The parent node. Defaults to None.
         """
         self.position = position  # Current board state
-        self.current_player = current_player  # -1 for AI, 1 for human
+        self.current_player = current_player  # 1 for AI, -1 for human
         self.x = x  # Last move X-coordinate
         self.y = y  # Last move Y-coordinate
         self.parent = parent  # Optional parent node
         self.children = []  # List of child nodes
-        self.score = None  # Evaluation score
+        self.score = self.parent.score + self.update_score() if self.parent else self.update_score()
 
     def generate_children(self):
         """
@@ -29,7 +28,6 @@ class Node:
         Returns:
             Generator[Node]: Generator of child nodes.
         """
-        # Define the kernel for neighbor detection
         kernel = np.ones((3, 3))
         kernel[1, 1] = 0  # Exclude the center cell
 
@@ -44,71 +42,54 @@ class Node:
         # Identify valid moves: empty cells (self.position == 0) with neighbors
         valid_moves_mask = (self.position == 0) & neighbor_mask
 
-        # Use np.ndenumerate for efficient iteration over the mask
         for (x, y), is_valid in np.ndenumerate(valid_moves_mask):
-            if is_valid:  # Only process valid moves
-                # Generate a new child node for each valid move
-                new_position = self.position.copy()  # Copy only when needed
+            if is_valid:
+                new_position = self.position.copy()
                 new_position[x, y] = self.current_player
                 yield Node(new_position, -self.current_player, x, y, parent=self)
 
-    def evaluate_position(self):
+    def update_score(self):
         """
-        Evaluate the board position and return a score.
-
-        Args:
-            position (list[list[int]]): The current board state.
+        Update the score of the current node based on the last move.
 
         Returns:
-            int: The evaluation score of the position.
+            int: The score of the current node.
         """
+        if self.x is None or self.y is None:
+            return 0  # 初期状態（親がいない場合）のスコアは0
+
+        # 定義されたカーネル（2連、3連、4連、5連）
+        k_2 = np.array([[1, 1]])
+        k_3 = np.array([[1, 1, 1]])
+        k_4 = np.array([[1, 1, 1, 1]])
+        k_5 = np.array([[1, 1, 1, 1, 1]])
+        kernels = [
+            k_2, k_3, k_4, k_5,
+            k_2.T, k_3.T, k_4.T, k_5.T,
+            np.eye(2, dtype=int), np.eye(3, dtype=int), np.eye(4, dtype=int), np.eye(5, dtype=int),
+            np.fliplr(np.eye(2, dtype=int)), np.fliplr(np.eye(3, dtype=int)),
+            np.fliplr(np.eye(4, dtype=int)), np.fliplr(np.eye(5, dtype=int)),
+        ]
+
+        weights = {2: 10, 3: 100, 4: 1000, 5: 10000}  # スコアリングの重み
+
+        # チェック範囲を石を置いた位置の近く（5x5）に限定
+        xmin = max(0, self.x - 4)
+        xmax = min(self.position.shape[0], self.x + 5)
+        ymin = max(0, self.y - 4)
+        ymax = min(self.position.shape[1], self.y + 5)
+
+        # スコア計算
         score = 0
+        local_board = self.position[xmin:xmax, ymin:ymax]  # 局所的な盤面を取得
 
-        for x in range(len(self.position)):
-            for y in range(len(self.position[0])):
-                if self.position[x][y] == 1:  # 黒石
-                    score += self.evaluate_cell(x, y, 1)
-                elif self.position[x][y] == -1:  # 白石
-                    score -= self.evaluate_cell(x, y, -1)
+        for kernel in kernels:
+            result_ai = convolve2d((local_board == 1).astype(int), kernel, mode="valid")
+            result_human = convolve2d((local_board == -1).astype(int), kernel, mode="valid")
 
-        return score
-
-    def evaluate_cell(self, x, y, player):
-        """
-        Evaluate a single cell in the board.
-
-        Args:
-            position (list[list[int]]): The current board state.
-            x (int): X-coordinate of the cell.
-            y (int): Y-coordinate of the cell.
-            player (int): The player to evaluate for (1 or -1).
-
-        Returns:
-            int: The evaluation score of the cell.
-        """
-        directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
-        score = 0
-
-        for dx, dy in directions:
-            count_player = 0
-            count_opponent = 0
-            opponent = -player
-
-            for i in range(5):
-                nx, ny = x + i * dx, y + i * dy
-                if 0 <= nx < len(self.position) and 0 <= ny < len(self.position[0]):
-                    if self.position[nx][ny] == player:
-                        count_player += 1
-                    elif self.position[nx][ny] == opponent:
-                        count_opponent += 1
-                    else:
-                        break
-
-            if count_player > 0 and count_opponent == 0:
-                score += 10**count_player
-
-            if count_opponent > 0 and count_player == 0:
-                score -= 10**count_opponent
+            stones = kernel.sum()  # カーネルでチェックする連続石の数
+            score += weights.get(stones, 0) * np.sum(result_ai == stones)  # AIのスコア
+            score -= weights.get(stones, 0) * np.sum(result_human == stones)  # Humanのスコア
 
         return score
 
@@ -119,16 +100,14 @@ class Node:
         Returns:
             bool: True if the game is over, False otherwise.
         """
-        # Check for five in a row for both players
-        if self.check_five_in_a_row(self.position == 1):  # Check for player 1
-            print("Game Over: Player 1 wins!")
+        if self.check_five_in_a_row(self.position == 1):  # Check for AI
+            print("Game Over: AI wins!")
             return True
-        if self.check_five_in_a_row(self.position == -1):  # Check for player -1
-            print("Game Over: Player -1 wins!")
+        if self.check_five_in_a_row(self.position == -1):  # Check for Human
+            print("Game Over: Human wins!")
             return True
 
-        # Check if the board is full
-        if np.all(self.position != 0):
+        if np.all(self.position != 0):  # Board is full
             print("Game Over: Draw!")
             return True
 
@@ -144,13 +123,11 @@ class Node:
         Returns:
             bool: True if there are five in a row, False otherwise.
         """
-        # Define kernels for different directions
         horizontal_kernel = np.array([[1, 1, 1, 1, 1]])
         vertical_kernel = horizontal_kernel.T
         diagonal_kernel1 = np.eye(5, dtype=int)
         diagonal_kernel2 = np.fliplr(diagonal_kernel1)
 
-        # Check for five in a row using convolution
         directions = [
             horizontal_kernel,
             vertical_kernel,
@@ -159,9 +136,7 @@ class Node:
         ]
 
         for kernel in directions:
-            # Perform convolution for the current direction
             result = convolve2d(board, kernel, mode="valid")
-            # Check if any cell has a value of 5 (indicating 5 in a row)
             if np.any(result == 5):
                 return True
 

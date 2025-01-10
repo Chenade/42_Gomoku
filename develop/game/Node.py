@@ -39,7 +39,7 @@ class Node:
         Generate all possible child nodes for the current node using convolution-based neighbor check.
 
         Returns:
-            List[Node]: List of child nodes.
+            Generator[Node]: Generator of child nodes.
         """
         # Define the kernel for neighbor detection
         kernel = np.ones((3, 3))
@@ -56,41 +56,14 @@ class Node:
         # Identify valid moves: empty cells (self.position == 0) with neighbors
         valid_moves_mask = (self.position == 0) & neighbor_mask
 
-        # Find indices of valid moves
-        valid_moves = np.argwhere(valid_moves_mask)
+        # Use np.ndenumerate for efficient iteration over the mask
+        for (x, y), is_valid in np.ndenumerate(valid_moves_mask):
+            if is_valid:  # Only process valid moves
+                # Generate a new child node for each valid move
+                new_position = self.position.copy()  # Copy only when needed
+                new_position[x, y] = self.current_player
+                yield Node(new_position, -self.current_player, x, y, parent=self)
 
-        # Generate child nodes based on valid moves
-        children = []
-        for x, y in valid_moves:
-            new_position = np.copy(self.position)
-            new_position[x, y] = self.current_player
-            child_node = Node(new_position, -self.current_player, x, y, parent=self)
-            children.append(child_node)
-
-        return children
-
-    def has_neighbor(self, grid, distance=1):
-        """
-        Use convolution to check if each cell has a neighbor.
-
-        Args:
-            grid (np.ndarray): The current game board.
-            distance (int): The distance to check for neighbors (default=1).
-
-        Returns:
-            np.ndarray: A boolean mask where True indicates a neighbor is present.
-        """
-        # Define the kernel to check for neighbors
-        kernel = np.ones((2 * distance + 1, 2 * distance + 1))
-        kernel[distance, distance] = 0  # Exclude the center cell itself
-
-        # Perform convolution to count neighbors
-        neighbor_count = convolve2d(
-            np.abs(grid), kernel, mode="same", boundary="fill", fillvalue=0
-        )
-
-        # Return a boolean mask where True indicates the presence of at least one neighbor
-        return neighbor_count > 0
 
     def evaluate_position(self):
         """

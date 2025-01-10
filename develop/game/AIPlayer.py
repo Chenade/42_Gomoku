@@ -9,7 +9,7 @@ class AIPlayer:
         self.depth = depth
         self.tree = []
 
-    def minimax(self, node, depth, alpha, beta):
+    def minimax_alpha_beta(self, node, depth, alpha, beta):
         """
         Minimax algorithm with alpha-beta pruning.
         """
@@ -21,7 +21,7 @@ class AIPlayer:
         if maximizing_player:
             max_eval = float("-inf")
             for child in node.generate_children():
-                eval = self.minimax(child, depth - 1, alpha, beta)
+                eval = self.minimax_alpha_beta(child, depth - 1, alpha, beta)
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
@@ -30,7 +30,7 @@ class AIPlayer:
         else:
             min_eval = float("inf")
             for child in node.generate_children():
-                eval = self.minimax(child, depth - 1, alpha, beta)
+                eval = self.minimax_alpha_beta(child, depth - 1, alpha, beta)
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
@@ -55,7 +55,7 @@ class AIPlayer:
 
         scored_moves = []
         for child in root_node.generate_children():
-            child.score = self.minimax(
+            child.score = self.minimax_alpha_beta(
                 child,
                 self.depth,
                 float("-inf"),

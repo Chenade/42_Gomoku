@@ -133,10 +133,10 @@ class Node:
             bool: True if the game is over, False otherwise.
         """
         # Check for five in a row for both players
-        if self.check_five_in_a_row_cnn(self.position == 1):  # Check for player 1
+        if self.check_five_in_a_row(self.position == 1):  # Check for player 1
             print("Game Over: Player 1 wins!")
             return True
-        if self.check_five_in_a_row_cnn(self.position == -1):  # Check for player -1
+        if self.check_five_in_a_row(self.position == -1):  # Check for player -1
             print("Game Over: Player -1 wins!")
             return True
 
@@ -147,7 +147,7 @@ class Node:
 
         return False
 
-    def check_five_in_a_row_cnn(self, board):
+    def check_five_in_a_row(self, board):
         """
         Check if there are five in a row using convolution.
 

@@ -14,7 +14,7 @@ class AIPlayer:
         if depth == 0 or node.is_game_over():
             return node.evaluate_position()
 
-        maximizing_player = node.current_player == -1
+        maximizing_player = node.current_player == 1
 
         if maximizing_player:
             max_eval = float("-inf")
@@ -41,7 +41,7 @@ class AIPlayer:
 
         Args:
             position (list of list of int): The current game board.
-            current_player (int): The player making the move (-1 for AI, 1 for human).
+            current_player (int): The player making the move (1 for AI, -1 for human).
             top_n (int): Number of top moves to return.
 
         Returns:

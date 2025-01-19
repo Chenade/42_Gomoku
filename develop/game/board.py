@@ -181,6 +181,13 @@ class Board:
         pygame.draw.line(self.screen, self.setting.palette("black"),
                             [loc[0], loc[1] - self.SIZE // 2], [loc[0], loc[1] + self.SIZE // 2], 2)
 
+    def remove_captures(self, stones):
+        for i in range(self.COL):
+            for j in range(self.COL):
+                if stones[i][j] == 3:
+                    self.remove_stone(j, i)
+                    stones[i][j] = 0
+
     def draw_result(self, g_type, play_order, text):
         pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x - 150, self.w_h - self.SIZE * 4, 600, self.SIZE * 2))
         

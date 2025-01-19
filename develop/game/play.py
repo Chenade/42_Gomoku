@@ -52,19 +52,20 @@ class Gomoku:
         return False
 
     def move(self, x_stone, y_stone, player1_score, player2_score):
-        # if self.play_order:
-        #     player1_score += check_capture(self._stones, self.COL, self.COL)
-        # else:
-        #     player2_score += check_capture(self._stones, self.COL, self.COL)
+        
+        capture = check_capture(self._stones, self.COL, self.COL, x_stone, y_stone, (-1 if self.play_order else 1))
+        if capture:
+            for x, y in capture:
+                self._stones[x][y] = 3
+                if self.play_order:
+                    player1_score += 1
+                else:
+                    player2_score += 1
 
         if player1_score > 4  or player2_score > 4 or \
             check_win(self._stones, self.COL, self.COL):
             return player1_score, player2_score, self.play_order, "WIN"
-            
         
-        # if self.check_draw(self._stones):
-        #     return player1_score, player2_score, self.play_order, "DRAW"
-
         self.print_stones()
         self.play_order = not self.play_order
         return player1_score, player2_score, self.play_order, None

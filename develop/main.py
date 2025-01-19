@@ -10,6 +10,7 @@ SIZE = 80
 def handle_move(board, gomoku, x_stone, y_stone, play_order, player1_score, player2_score):
     board.draw_stone("black" if (play_order) else "white", x_stone, y_stone)
     player1_score, player2_score, play_order, result = gomoku.move(x_stone, y_stone, player1_score, player2_score)
+    board.remove_captures(gomoku._stones)
     board.draw_player(gomoku.g_type, play_order, player1_score, player2_score)
     if result is not None:
         board.draw_result(gomoku.g_type, gomoku.play_order, result)

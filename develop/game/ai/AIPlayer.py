@@ -1,4 +1,4 @@
-from game.Node import Node
+from game.ai.Node import Node
 import numpy as np
 
 

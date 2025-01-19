@@ -1,6 +1,7 @@
 import pygame, sys
 import time
-from game import Board, Gomoku, AIPlayer, Node, Tree
+from game import Board, Gomoku
+from game.ai import AIPlayer, Node
 from setting.config import Config
 
 COL = 19
@@ -31,7 +32,7 @@ if __name__ == "__main__":
     setting.setup("42 Gomoku")
     board = Board(setting)
     gomoku = Gomoku(setting)
-    ai = AIPlayer(depth=0)
+    ai = AIPlayer(depth=1)
 
     while True:
         event = pygame.event.poll()
@@ -66,11 +67,9 @@ if __name__ == "__main__":
 
                         if gomoku.g_type == "PvC" and play_order is False:
                             pygame.display.update()
-                            x_stone, y_stone = gomoku.computer_move(ai, board.draw_stone, board.remove_stone)
+                            x_stone, y_stone, process_time = gomoku.computer_move(ai, board.draw_stone, board.remove_stone)
                             player1_score, player2_score, play_order = handle_move(board, gomoku, x_stone, y_stone, play_order, player1_score, player2_score)
+                            board.draw_timer(process_time, play_order)  
 
-        # # Timer
-        # if play_order is not None:
-        #     board.draw_timer(turn_start_time, play_order)
 
         pygame.display.update()

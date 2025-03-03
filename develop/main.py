@@ -33,7 +33,7 @@ if __name__ == "__main__":
     setting.setup("42 Gomoku")
     board = Board(setting)
     gomoku = Gomoku(setting)
-    ai = AIPlayer(depth=1)
+    ai = AIPlayer(depth=3)
 
     while True:
         event = pygame.event.poll()

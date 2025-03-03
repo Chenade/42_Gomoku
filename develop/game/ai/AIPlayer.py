@@ -1,5 +1,6 @@
 from game.ai.Node import Node
-import numpy as np
+from .Node import Node
+from .constants import BLACK
 
 
 class AIPlayer:
@@ -34,9 +35,81 @@ class AIPlayer:
                     break
             return min_eval
 
+    def minimax_a_b_pruning(
+        self, node, depth, maximizing_player, alpha=float("-inf"), beta=float("inf")
+    ):
+        """
+        Perform the minimax search with alpha-beta pruning.
+
+        Args:
+            node (Node): The current game state.
+            depth (int): The depth to search.
+            maximizing_player (bool): True if the current search level is the maximizing player (AI, WHITE),
+                                    else False (opponent, BLACK).
+            alpha (float): The current alpha value.
+            beta (float): The current beta value.
+
+        Returns:
+            tuple: (score, best_node) where score is the heuristic evaluation and best_node is the best child Node.
+        """
+        # もし葉なら（深さ0、終局、もしくは禁止手の場合）、評価値を返す
+        if depth == 0 or node.is_terminal or node.is_forbidden_move:
+            return node.get_heuristic_score(), node
+
+        if maximizing_player:
+            max_eval = float("-inf")
+            best_move = None
+            for child in node.generate_child_nodes():
+                eval, _ = self.minimax_a_b_pruning(child, depth - 1, False, alpha, beta)
+                if eval > max_eval:
+                    max_eval = eval
+                    best_move = child
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break  # beta cut-off
+            return max_eval, best_move
+        else:
+            min_eval = float("inf")
+            best_move = None
+            for child in node.generate_child_nodes():
+                eval, _ = self.minimax_a_b_pruning(child, depth - 1, True, alpha, beta)
+                if eval < min_eval:
+                    min_eval = eval
+                    best_move = child
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break  # alpha cut-off
+            return min_eval, best_move
+
+    def initiate_minimax(self, node, depth, top_n=3):
+        """
+        Generate all possible moves from the current node and evaluate them with minimax,
+        then return the top_n moves sorted by descending heuristic score.
+
+        Args:
+            node (Node): The current game state.
+            depth (int): The search depth for minimax (should be >= 1).
+            top_n (int): Number of top moves to return.
+
+        Returns:
+            list of tuples: Each tuple is (score, child_node).
+        """
+        moves_scores = []
+        # Generate candidate moves. Note: next move is AI (WHITE) since current node stone_type is BLACK.
+        for child in node.generate_child_nodes():
+            # For each candidate move, evaluate with minimax (depth-1, opponent's turn)
+            score, _ = self.minimax_a_b_pruning(
+                child, depth - 1, False, alpha=float("-inf"), beta=float("inf")
+            )
+            moves_scores.append((score, child))
+        # Sort moves by score in descending order (higher is better for maximizing player)
+        moves_scores.sort(key=lambda x: x[0], reverse=True)
+        return moves_scores[:top_n]
+
     def get_top_moves(self, position, current_player, top_n=3):
         """
-        Get the top N best moves for the given player.
+        Generate all possible moves from the current node and evaluate them with minimax,
+        then return the top_n moves sorted by descending heuristic score.
 
         Args:
             position (list of list of int): The current game board.
@@ -44,22 +117,8 @@ class AIPlayer:
             top_n (int): Number of top moves to return.
 
         Returns:
-            list: Top N moves as (score, (x, y)).
+            list of tuples: Each tuple is (score, (x, y)) where (x, y) are the move coordinates.
         """
-
-        # Create the root node with the padded board
-        root_node = Node(np.array(position), current_player)
-
-        scored_moves = []
-        for child in root_node.generate_children():
-            child.score = self.minimax_alpha_beta(
-                child,
-                self.depth,
-                float("-inf"),
-                float("inf"),
-            )
-            # Convert padded coordinates back to the original board coordinates
-            scored_moves.append((child.score, (child.x, child.y)))
-
-        scored_moves.sort(key=lambda x: x[0], reverse=True)
-        return scored_moves[:top_n]
+        node = Node(board=position, move=None, stone_type=BLACK, depth=0)
+        top_moves = self.initiate_minimax(node, depth=self.depth, top_n=top_n)
+        return [(score, child.move) for score, child in top_moves]

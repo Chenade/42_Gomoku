@@ -169,11 +169,6 @@ class Board:
 
     def draw_stone(self, color, x_stone, y_stone):
         stone_color = self.setting.palette(color)
-        # if play_order:
-        #     self.stone_color = self.setting.palette("black")
-        # else:
-        #     self.stone_color = self.setting.palette("white")
-
         self.x_stone, self.y_stone = x_stone, y_stone
         loc = ((self.x_stone + 1) * self.SIZE, (self.y_stone + 1) * self.SIZE)
         pygame.draw.circle(self.screen, stone_color, loc, self.SIZE // 2)
@@ -181,16 +176,22 @@ class Board:
     def remove_stone(self, x_stone, y_stone):
         loc = ((x_stone + 1) * self.SIZE, (y_stone + 1) * self.SIZE)
         pygame.draw.circle(self.screen, self.setting.palette("board"), loc, self.SIZE // 2)
-        #draw vertical and horizontal lines just for the removed stone
         pygame.draw.line(self.screen, self.setting.palette("black"),
                          [loc[0] - self.SIZE // 2, loc[1]], [loc[0] + self.SIZE // 2, loc[1]], 2)
         pygame.draw.line(self.screen, self.setting.palette("black"),
                             [loc[0], loc[1] - self.SIZE // 2], [loc[0], loc[1] + self.SIZE // 2], 2)
 
+    def remove_captures(self, stones):
+        for i in range(self.COL):
+            for j in range(self.COL):
+                if stones[i][j] == 3:
+                    self.remove_stone(j, i)
+                    stones[i][j] = 0
+
     def draw_result(self, g_type, play_order, text):
-        pygame.draw.rect(self.screen, self.setting.palette("white"), ( self.w_h + 2, self.w_h - self.SIZE * 4, 500, self.SIZE * 2))
+        pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x - 150, self.w_h - self.SIZE * 4, 600, self.SIZE * 2))
         
-        loc_text = (self.panel_x + 100,  self.w_h - self.SIZE * 3)
+        loc_text = (self.panel_x + 120,  self.w_h - self.SIZE * 3)
         if text == "DRAW":
             self.text_draw("DRAW",loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE)
             return None
@@ -208,8 +209,8 @@ class Board:
                 self.text_draw(f"Computer {text}", loc_text[0], loc_text[1], self.setting.palette("green"), self.SIZE - 10)
             
     def draw_timer(self, turn_start_time, play_order):
-        pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x, self.w_h // 2 + 10 , 200, self.h))
-        elapsed_time = (pygame.time.get_ticks() - turn_start_time)
-        seconds = elapsed_time / 1000
-        formatted_time = f"{seconds:.1f}".rjust(8)
-        self.text_draw(f"Timer: {formatted_time} s", self.panel_x + 110,  self.w_h // 2 + 30, self.setting.palette("blue"), self.SIZE // 2)
+        pygame.draw.rect(self.screen, self.setting.palette("white"), (self.panel_x - 100, self.w_h // 2 + 290 , 500, self.SIZE))
+        # elapsed_time = (pygame.time.get_ticks() - turn_start_time)
+        # seconds = elapsed_time / 1000
+        # formatted_time = f"{seconds:.1f}".rjust(8)
+        self.text_draw(f"Processed Time: {turn_start_time:.3f} s", self.panel_x + 150,  self.w_h // 2 + 330, self.setting.palette("blue"), self.SIZE // 3)

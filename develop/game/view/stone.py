@@ -40,9 +40,9 @@ class Stone:
         y_stone, x_stone = move
         loc = ((x_stone + 1) * self.SIZE, (y_stone + 1) * self.SIZE)
         pygame.draw.circle(self.screen, self.get_color("board"), loc, self.SIZE // 2)
-        pygame.draw.line(self.screen, self.get_color("black"),
+        pygame.draw.line(self.screen, self.get_color("line"),
                          [loc[0] - self.SIZE // 2, loc[1]], [loc[0] + self.SIZE // 2, loc[1]], 2)
-        pygame.draw.line(self.screen, self.get_color("black"),
+        pygame.draw.line(self.screen, self.get_color("line"),
                          [loc[0], loc[1] - self.SIZE // 2], [loc[0], loc[1] + self.SIZE // 2], 2)
 
     def remove_captures(self, stones):

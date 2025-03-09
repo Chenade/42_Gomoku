@@ -74,13 +74,13 @@ class Gomoku:
         end_time = time.time()
         process_time = end_time - start_time
         
-        draw_stone("white", top_moves[0][1])
+        draw_stone("player2", top_moves[0][1])
 
         # suggest #2 moves
-        draw_stone("_white", top_moves[1][1])
+        draw_stone("hint", top_moves[1][1])
 
         # suggest #3 moves
-        draw_stone("_white", top_moves[2][1])
+        draw_stone("hint", top_moves[2][1])
 
         pygame.display.update()
 

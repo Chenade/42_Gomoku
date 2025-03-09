@@ -16,11 +16,11 @@ class Button:
     def button_draw(self, loc, pos, text, hover_text, text_draw):
         get_color = self.setting.get_color
         if self.button_is_hover(loc):
-            pygame.draw.rect(self.screen, get_color("ac_button"), (loc[0], loc[1], self.w, self.h))
-            text_draw(text, pos, "green", self.COL)
+            pygame.draw.rect(self.screen, get_color("button_hover"), (loc[0], loc[1], self.w, self.h))
+            text_draw(text, pos, "btn_text_hover", self.COL)
         else:
             pygame.draw.rect(self.screen, get_color("button"), (loc[0], loc[1], self.w, self.h))
-            text_draw(hover_text, pos, "red", self.COL)
+            text_draw(hover_text, pos, "btn_text", self.COL)
 
     def draw_button(self, status, text_draw):
         shift_x = self.SIZE * 13 // 9   

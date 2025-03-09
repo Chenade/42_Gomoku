@@ -1,5 +1,4 @@
 import pygame, time
-import random
 from game.rules.rule_win import check_win
 from game.rules.rule_capture import check_capture
 from game.rules.rule_double_three import check_double_three

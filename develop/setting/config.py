@@ -2,28 +2,28 @@ import pygame
 
 class Config:
     def __init__(self,  title):
-        pygame.display.set_caption(title)
-        self.title = title
-        self.CAPTURE = 10
-        self.COL = 19
-        self.SIZE = 80
-        self.w_h = self.SIZE * (self.COL)
-
         screen_info = pygame.display.Info()
         screen_width = screen_info.current_w
         screen_height = screen_info.current_h
         self.screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)  # Make the window resizable
         self.w, self.h = self.screen.get_size()
         self.screen = pygame.display.set_mode((self.h * 5 // 4, self.h * 5 // 6 ))
-        self.SIZE = self.h // (self.COL + 5)
-        self.w_h = self.SIZE * (self.COL)
-        self.screen.fill(self.palette("board"))
 
-    def change_column(self, COL):
+        pygame.display.set_caption(title)
+        self.title = title
+        self.CAPTURE = 10
+        self.set_column(19)
+
+
+    def set_column(self, COL):
         self.COL = COL
         self.SIZE = self.h // (self.COL + 5)
         self.w_h = self.SIZE * (self.COL)
         self.screen.fill(self.palette("board"))
+        self.panel_x = self.SIZE * (self.COL + 3)
+
+    def get_color(self, color):
+        return self.palette(color)
 
     def palette(self, color):
         if color == "black":

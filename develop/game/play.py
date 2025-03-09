@@ -10,8 +10,9 @@ class Gomoku:
         self.type = None
         self.g_type = None
         self._stones = []
-        self.capture = config.CAPTURE
-        self.COL = config.COL
+        self.setting = config
+        self.capture = self.setting.CAPTURE
+        self.COL = self.setting.COL
 
     def init_board(self):
         self._stones = {}
@@ -24,16 +25,12 @@ class Gomoku:
 
     def new_game(self, board, g_type):
         self.g_type = g_type
-        board.draw_board()
+        board.draw_board(self.setting)
         self.g_type = g_type
         self.play_order = True
         self.init_board()
         return self.play_order
     
-    def clean(self):
-        self.g_type = None
-        self.init_board()
-
     def check_draw(self, _stones):
         self.result = False
         for i in range(self.COL):
@@ -47,14 +44,14 @@ class Gomoku:
         y_stone, x_stone = move
         if x_stone is not None and y_stone is not None:
             if self._stones[y_stone][x_stone] == 0:
-                if check_double_three(self._stones, move, (-1 if self.play_order else 1)):
+                if check_double_three(self.setting, self._stones, move, (-1 if self.play_order else 1)):
                     return False
                 self._stones[y_stone][x_stone] = (-1 if play_order else 1)
                 return True
         return False
 
     def move(self, move, player1_score, player2_score):
-        capture = check_capture(self._stones, move, (-1 if self.play_order else 1))
+        capture = check_capture(self.setting, self._stones, move, (-1 if self.play_order else 1))
         if capture:
             for x, y in capture:
                 self._stones[x][y] = 3

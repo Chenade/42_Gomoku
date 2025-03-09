@@ -4,18 +4,21 @@
 # |_____|___|_|_|_|___|_,_|___|
 
 import pygame
-from setting.config import Config
 
 class Board:
     def __init__(self, setting):
+        self.update_setting(setting)
+        self.panel_x = self.SIZE * (self.COL + 3)
+        self.player1_score = 0
+        self.player2_score = 0
+
+    def update_setting(self, setting):
         self.setting = setting
         self.screen = self.setting.screen
         self.COL = self.setting.COL
         self.SIZE = self.setting.SIZE
         self.w_h = self.setting.w_h
         self.panel_x = self.SIZE * (self.COL + 3)
-        self.player1_score = 0
-        self.player2_score = 0
     
     def get_color(self, color):
         return self.setting.palette(color)
@@ -52,12 +55,13 @@ class Board:
             text_rect = text.get_rect(center=(width // 2, height // 2 - self.SIZE * 3))
             self.screen.blit(text, text_rect)
 
-    def clean_board(self):
+    def clean(self):
         self.screen.fill(self.get_color("board"))
         self.player1_score = 0
         self.player2_score = 0
 
-    def draw_board(self):
+    def draw_board(self, setting):
+        self.update_setting(setting)
         self.screen.fill(self.get_color("board"))
         # Draw board
         for i in range(1, self.COL + 1):
@@ -205,9 +209,9 @@ class Board:
                     stones[i][j] = 0
 
     def draw_result(self, g_type, play_order, text):
-        pygame.draw.rect(self.screen, self.get_color("white"), (self.panel_x - 120, self.w_h - self.SIZE * 4, 600, self.SIZE * 2))
+        pygame.draw.rect(self.screen, self.get_color("white"), (self.panel_x - 120, self.w_h - self.SIZE * 4 + 10, 600, self.SIZE * 2))
         
-        loc_text = (self.panel_x + 120,  self.w_h - self.SIZE * 3)
+        loc_text = (self.panel_x + 120,  self.w_h - self.SIZE * 3 + 10)
         if text == "DRAW":
             self.text_draw("DRAW",loc_text, "green", self.SIZE)
             return None

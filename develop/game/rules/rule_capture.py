@@ -1,13 +1,11 @@
 from setting.constants import (
     DIRECTIONS_FRONT_BACK,
 )
-from setting.config import Config
 
-def check_capture(stones, move,  current_player):
+def check_capture(setting, stones, move,  current_player):
     y_stone, x_stone = move
     opponent = -current_player
     captured_stones = set()
-    setting = Config()
     rows = setting.COL
     cols = setting.COL
     

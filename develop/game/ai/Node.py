@@ -18,6 +18,7 @@ from setting.constants import (
 )
 import random
 import logging
+from game.rules.rule_double_three import check_double_three
 
 
 class Node:
@@ -52,51 +53,13 @@ class Node:
         self.captures = {WHITE: parent_my_captures, BLACK: parent_opponent_captures}
 
         ## is_forbidden_move is a flag indicating whether the move is forbidden.
-        self.is_forbidden_move = self.is_forbidden()
+        self.is_forbidden_move = check_double_three(board, move, stone_type)
 
         # Update the captures based on the current board state and store them as attributes.
         self.board, self.captures = self.update_captures()
 
         # Now we can call is_gameover() as an instance method.
         self.is_terminal, self.winner = self.is_gameover()
-
-    def is_forbidden(self):
-        """
-        Check if the move is a forbidden move.
-
-        A forbidden move is a move that violates the "double three" rule.
-        The double three rule states that a player cannot place a stone that simultaneously forms two open rows of three.
-
-        Returns:
-            bool: True if the move is forbidden, False otherwise.
-        """
-        if self.move is None:
-            return False
-
-        def in_bounds(r, c):
-            return 0 <= r < ROWS and 0 <= c < COLS
-
-        new_row, new_col = self.move
-        stone = self.stone_type
-        open_rows = 0
-
-        for dx, dy in DIRECTIONS_FRONT_BACK:
-            count = 1
-            x, y = new_row, new_col
-            while True:
-                x += dx
-                y += dy
-                if not in_bounds(x, y):
-                    break
-                if self.board[x][y] == stone:
-                    count += 1
-                elif self.board[x][y] == EMPTY:
-                    continue
-                else:
-                    break
-            if count == 3:
-                open_rows += 1
-        return open_rows == 2
 
     def update_captures(self):
         """

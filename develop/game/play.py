@@ -1,8 +1,10 @@
 import pygame, time
 import random
+# from config import Config
 from game.rules.rule_win import check_win
 from game.rules.rule_capture import check_capture
 from game.rules.rule_double_three import check_double_three
+from setting.config import Config
 
 class Gomoku:
 
@@ -11,6 +13,8 @@ class Gomoku:
         self.g_type = None
         self._stones = []
         self.COL = config.COL
+        # self.capture = Config.CAPTURE
+        # print(self.capture)
 
     def init_board(self):
         self._stones = {}
@@ -43,9 +47,10 @@ class Gomoku:
         return self.result
 
     def check_legal(self, x_stone, y_stone, play_order):
+        move = (y_stone, x_stone)
         if x_stone is not None and y_stone is not None:
             if self._stones[y_stone][x_stone] == 0:
-                if check_double_three(self._stones, self.COL, self.COL, x_stone, y_stone, play_order):
+                if check_double_three(self._stones, move, (-1 if self.play_order else 1)):
                     return False
                 self._stones[y_stone][x_stone] = (-1 if play_order else 1)
                 return True
@@ -53,7 +58,8 @@ class Gomoku:
 
     def move(self, x_stone, y_stone, player1_score, player2_score):
         
-        capture = check_capture(self._stones, self.COL, self.COL, x_stone, y_stone, (-1 if self.play_order else 1))
+        move = (y_stone, x_stone)
+        capture = check_capture(self._stones, move, (-1 if self.play_order else 1))
         if capture:
             for x, y in capture:
                 self._stones[x][y] = 3
@@ -62,7 +68,7 @@ class Gomoku:
                 else:
                     player2_score += 1
 
-        if player1_score > 4  or player2_score > 4 or \
+        if player1_score >= 10  or player2_score >= 10 or \
             check_win(self._stones, self.COL, self.COL):
             return player1_score, player2_score, self.play_order, "WIN"
         
@@ -71,8 +77,20 @@ class Gomoku:
         return player1_score, player2_score, self.play_order, None
 
     def print_stones(self):
+        print("   | ", end="")
         for i in range(self.COL):
+            print(" ", end="")
+            print(i, end=" ")
+        print("\n---------------------------------------------------------------------")
+        for i in range(self.COL):
+            if (i < 10):
+                print(" ", end="")
+            print(f"{i} | ", end="")
             for j in range(self.COL):
+                if (j >= 10):
+                    print(" ", end="")
+                if self._stones[i][j] != -1:
+                    print(" ", end="")
                 print(self._stones[i][j], end=" ")
             print()
         print()
@@ -89,7 +107,6 @@ class Gomoku:
         # suggest #1 moves(x_stone, y_stone)
         print(r_x_stone, r_y_stone)
         draw_stone("white", r_x_stone, r_y_stone)
-        self.check_legal(r_x_stone, r_y_stone, False)
 
         # suggest #2 moves
         y_stone, x_stone = top_moves[1][1]
@@ -107,6 +124,6 @@ class Gomoku:
         pygame.time.delay(1000)
         remove_stone(x_stone, y_stone)
         y_stone, x_stone = top_moves[1][1]
-        remove_stone(x_stone, y_stone)
+        remove_stone(x_stone, y_stone)  
         
         return r_x_stone, r_y_stone, process_time

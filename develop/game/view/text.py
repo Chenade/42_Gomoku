@@ -3,6 +3,7 @@ import pygame
 class Text:
     def __init__(self, screen, setting):
         self.screen = screen
+        self.button_size = setting.button_size
         self.font_size = setting.font_size
         self.get_color = setting.get_color
         self.panel_x = setting.panel_x
@@ -94,12 +95,12 @@ class Text:
             if play_order:
                 self.text_draw(f"Player {text}", loc_text, "green")
             else:
-                self.text_draw(f"Computer {text}", loc_text, "green", sel)
+                self.text_draw(f"Computer {text}", loc_text, "green")
 
     def draw_timer(self, turn_start_time, play_order):
         panel_x = self.panel_x
         w_h = self.w_h
         
-        pygame.draw.rect(self.screen, self.get_color("white"), (panel_x - 100, w_h // 2 + 180, 400, self.font_size))
+        pygame.draw.rect(self.screen, self.get_color("white"), (panel_x - 100, w_h // 2 + 180, 400, self.button_size))
         pos = (panel_x + 120, w_h // 2 + 200)
-        self.text_draw(f"Processed Time: {turn_start_time:.3f} s", pos, "blue", sel)
+        self.text_draw(f"Processed Time: {turn_start_time:.3f} s", pos, "blue")

@@ -8,7 +8,7 @@ def main():
     pygame.font.init()
     game = Game()
     event_handler = EventHandler(game)
-    # game.setting.set_column(15)
+    # game.setting.set_column(5)
     # game.setting.set_color(board_color="dark_green", line_color="white")
 
     while True:
@@ -42,6 +42,10 @@ def main():
                         move, process_time = game.gomoku.computer_move(game.ai, game.view.draw_stone, game.view.remove_stone)
                         game.player1_score, game.player2_score, game.play_order = game.handle_move(move)
                         game.view.text_timer(process_time, game.play_order)
+                check_draw = game.gomoku.check_draw(game.gomoku._stones)
+                if check_draw:
+                    game.view.text_result(game.gomoku.g_type, game.gomoku.play_order, "DRAW")
+                    game.play_order = None
 
         pygame.display.update()
 

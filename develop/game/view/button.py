@@ -4,7 +4,7 @@ class Button:
     def __init__(self, screen, setting):
         self.screen = screen
         self.setting = setting
-        self.SIZE = self.setting.SIZE
+        self.SIZE = self.setting.button_size
         self.COL = self.setting.COL
         self.w_h = self.setting.w_h
         self.w, self.h = self.SIZE * 3, self.SIZE
@@ -17,10 +17,10 @@ class Button:
         get_color = self.setting.get_color
         if self.button_is_hover(loc):
             pygame.draw.rect(self.screen, get_color("button_hover"), (loc[0], loc[1], self.w, self.h))
-            text_draw(text, pos, "btn_text_hover", self.COL)
+            text_draw(text, pos, "btn_text_hover")
         else:
             pygame.draw.rect(self.screen, get_color("button"), (loc[0], loc[1], self.w, self.h))
-            text_draw(hover_text, pos, "btn_text", self.COL)
+            text_draw(hover_text, pos, "btn_text")
 
     def draw_button(self, status, text_draw):
         shift_x = self.SIZE * 13 // 9   

@@ -20,6 +20,8 @@ class Config:
         self.player2_color = "white"
 
         self.set_column(19)
+        self.button_size = self.SIZE
+        self.font_size = self.COL
 
     def set_column(self, COL):
         self.COL = COL

@@ -1,10 +1,11 @@
 
 from game import View
+from setting.config import Config
 
 class Game:
-    def __init__(self, setting):
-        self.setting = setting
-        self.view = View(setting)
+    def __init__(self):
+        self.setting = Config("42 Gomoku")
+        self.view = View(self.setting)
         self.status, self.play_order, self.player1_score, self.player2_score, self.ai, self.gomoku = self.init_game()
 
     def init_game(self):
@@ -23,7 +24,7 @@ class Game:
         return self.player1_score, self.player2_score, self.play_order
 
     def handle_move(self, move):
-        self.view.draw_stone("black" if self.play_order else "white", move)
+        self.view.draw_stone("player1" if self.play_order else "player2", move)
         self.player1_score, self.player2_score, self.play_order, result = self.gomoku.move(move, self.player1_score, self.player2_score)
         self.view.remove_captures(self.gomoku._stones)
         self.view.text_player(self.gomoku.g_type, self.play_order, self.player1_score, self.player2_score)

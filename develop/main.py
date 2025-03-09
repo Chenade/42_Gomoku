@@ -2,14 +2,14 @@ import pygame
 import sys
 from game import Game
 from event import EventHandler
-from setting.config import Config
 
 def main():
     pygame.init()
     pygame.font.init()
-    setting = Config("42 Gomoku")
-    game = Game(setting)
+    game = Game()
     event_handler = EventHandler(game)
+    # game.setting.set_column(15)
+    # game.setting.set_color(board_color="dark_green", line_color="white")
 
     while True:
         game.view.draw_page(game.status)

@@ -39,9 +39,9 @@ class View:
         self.screen.fill(self.get_color("board"))
         # Draw board
         for i in range(1, self.COL + 1):
-            pygame.draw.line(self.screen, self.get_color("black"),
+            pygame.draw.line(self.screen, self.get_color("line"),
                              [self.SIZE * i, self.SIZE], [self.SIZE * i, self.w_h], 2)
-            pygame.draw.line(self.screen, self.get_color("black"),
+            pygame.draw.line(self.screen, self.get_color("line"),
                              [self.SIZE, self.SIZE * i], [self.w_h, self.SIZE * i], 2)
 
     def text_player(self, g_type, play_order, player1_score, player2_score):

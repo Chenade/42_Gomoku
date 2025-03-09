@@ -24,7 +24,7 @@ class Board:
         x_pos, y_pos = pos
         self.text = text
         self.font_size = font_size
-        self.font_color = font_color
+        self.font_color = self.get_color(font_color)
         ff = pygame.font.Font(pygame.font.get_default_font(), self.font_size)
         TextSurf, TextRect = self.text_objects(self.text, ff, self.font_color)
         TextRect.center = (x_pos, y_pos)
@@ -37,12 +37,12 @@ class Board:
     def draw_title(self, game_type):
         if game_type is not None:
             pos = (self.panel_x + 120, self.SIZE)
-            self.text_draw("GOMOKU", pos, self.get_color("black"), self.SIZE // 2)
+            self.text_draw("GOMOKU", pos, "black", self.SIZE // 2)
             pos = (self.panel_x + 120, self.SIZE * 2)
             if game_type == "PvP":
-                self.text_draw("Player against Player", pos, self.get_color("green"), self.SIZE // 3)
+                self.text_draw("Player against Player", pos, "green", self.SIZE // 3)
             elif game_type == "PvC":
-                self.text_draw("Player against Computer", pos, self.get_color("green"), self.SIZE // 3)
+                self.text_draw("Player against Computer", pos, "green", self.SIZE // 3)
         else:
             # draw text
             font = pygame.font.Font(None, self.SIZE * 2)
@@ -71,18 +71,18 @@ class Board:
         pos_player_2 = (self.panel_x + 120, self.w_h // 2 + 100)
         if g_type == "PvP":
             if play_order:
-                self.text_draw("PLAYER 1",pos_player_1, self.get_color("red"), self.SIZE // 3)
-                self.text_draw("PLAYER 2",pos_player_2, self.get_color("black"), self.SIZE // 3)
+                self.text_draw("PLAYER 1",pos_player_1, "red", self.SIZE // 3)
+                self.text_draw("PLAYER 2",pos_player_2, "black", self.SIZE // 3)
             elif not play_order:
-                self.text_draw("PLAYER 1",pos_player_1, self.get_color("black"), self.SIZE // 3)
-                self.text_draw("PLAYER 2",pos_player_2, self.get_color("red"), self.SIZE // 3)
+                self.text_draw("PLAYER 1",pos_player_1, "black", self.SIZE // 3)
+                self.text_draw("PLAYER 2",pos_player_2, "red", self.SIZE // 3)
         else:
             if play_order:
-                self.text_draw("PLAYER",pos_player_1, self.get_color("red"), self.SIZE // 3)
-                self.text_draw("COMPUTER",pos_player_2, self.get_color("black"), self.SIZE // 3)
+                self.text_draw("PLAYER",pos_player_1, "red", self.SIZE // 3)
+                self.text_draw("COMPUTER",pos_player_2, "black", self.SIZE // 3)
             elif not play_order:
-                self.text_draw("PLAYER",pos_player_1, self.get_color("black"), self.SIZE // 3)
-                self.text_draw("COMPUTER",pos_player_2, self.get_color("red"), self.SIZE // 3)
+                self.text_draw("PLAYER",pos_player_1, "black", self.SIZE // 3)
+                self.text_draw("COMPUTER",pos_player_2, "red", self.SIZE // 3)
 
         pygame.draw.circle(self.screen, self.get_color("black"), (self.panel_x, self.w_h // 2 - 50), self.SIZE // 5)
         pygame.draw.circle(self.screen, self.get_color("white"), (self.panel_x, self.w_h // 2 + 150), self.SIZE//5)
@@ -91,12 +91,12 @@ class Board:
         if player1_score != self.player1_score or player1_score == 0:
             pygame.draw.rect(self.screen, self.get_color("board"), (self.panel_x + 70, self.w_h // 2 - 80 , 80, 80))
             pos = (self.panel_x + 120, self.w_h // 2 - 40)
-            self.text_draw(str(player1_score), pos, (100, 100, 100), self.SIZE)
+            self.text_draw(str(player1_score), pos, "black", self.SIZE)
         
         if player2_score != self.player2_score or player2_score == 0:
             pygame.draw.rect(self.screen, self.get_color("board"), (self.panel_x + 90, self.w_h // 2 + 120 , 60, 60))
             pos = (self.panel_x + 120, self.w_h // 2 + 160)
-            self.text_draw(str(player2_score), pos, self.get_color("black"), self.SIZE)
+            self.text_draw(str(player2_score), pos, "black", self.SIZE)
             
         self.player1_score, self.player2_score = player1_score, player2_score
 
@@ -133,19 +133,19 @@ class Board:
             pos = (self.x + shift_x, loc[1] + shift_y)
             if self.x <= mouse_x <= self.x + self.w and self.y <= mouse_y <= self.y + self.h:
                 pygame.draw.rect(self.screen, self.get_color("ac_button"), (loc[0], loc[1], self.w, self.h))
-                self.text_draw("START", pos, self.get_color("green"), self.COL)
+                self.text_draw("START", pos, "green", self.COL)
             else:
                 pygame.draw.rect(self.screen, self.get_color("button"), (loc[0], loc[1], self.w, self.h))
-                self.text_draw("PvP", pos, self.get_color("red"), self.COL)
+                self.text_draw("PvP", pos, "red", self.COL)
 
             loc = (self.x, self.y + self.SIZE * 2)
             pos = (self.x + shift_x, loc[1] + shift_y)
             if self.x <= mouse_x <= self.x + self.w and self.y + self.SIZE * 2 <= mouse_y <= self.y + self.SIZE * 2 + self.h:
                 pygame.draw.rect(self.screen, self.get_color("ac_button"), (loc[0], loc[1], self.w, self.h))
-                self.text_draw("START", pos, self.get_color("green"), self.COL)
+                self.text_draw("START", pos, "green", self.COL)
             else:
                 pygame.draw.rect(self.screen, self.get_color("button"), (loc[0], loc[1], self.w, self.h))
-                self.text_draw("Computer", pos, self.get_color("red"), self.COL)
+                self.text_draw("Computer", pos, "red", self.COL)
 
         else:
             quit_loc = (self.x, self.w_h - self.SIZE)
@@ -153,16 +153,16 @@ class Board:
             quit_pos = (self.x + shift_x, quit_text_y)
             if self.x <= mouse_x <= self.x + self.w and self.w_h - self.SIZE <= mouse_y <= self.w_h - self.SIZE + self.h:
                 pygame.draw.rect(self.screen, self.get_color("ac_button"), (quit_loc[0], quit_loc[1], self.w, self.h))
-                self.text_draw("RESTART", quit_pos, self.get_color("red"), self.COL)
+                self.text_draw("RESTART", quit_pos, "red", self.COL)
             else:
                 pygame.draw.rect(self.screen, self.get_color("button"), (quit_loc[0], quit_loc[1], self.w, self.h))
-                self.text_draw("MENU", quit_pos, self.get_color("btn_text"), self.COL)
+                self.text_draw("MENU", quit_pos, "btn_text", self.COL)
 
-    def get_stone_pos(self):
-
-        x_stone, y_stone = pygame.mouse.get_pos()
+    def get_stone_pos(self, _stones):
+        y_stone, x_stone = pygame.mouse.get_pos()
 
         if self.SIZE < x_stone < self.SIZE * self.COL and self.SIZE < y_stone < self.SIZE * self.COL:
+
             if x_stone % self.SIZE > self.SIZE // 2:
                 x_stone = (x_stone - x_stone % self.SIZE) + self.SIZE
             else:
@@ -173,10 +173,13 @@ class Board:
             else:
                 y_stone -= y_stone % self.SIZE
 
-            return x_stone // self.SIZE - 1, y_stone // self.SIZE - 1
+            if (_stones[x_stone // self.SIZE - 1][y_stone // self.SIZE - 1] != 0):
+                return None
+
+            return (x_stone // self.SIZE - 1, y_stone // self.SIZE - 1)
 
         else:
-            return None, None
+            return None
 
     def draw_stone(self, color, move):
         y_stone, x_stone = move
@@ -202,26 +205,26 @@ class Board:
                     stones[i][j] = 0
 
     def draw_result(self, g_type, play_order, text):
-        pygame.draw.rect(self.screen, self.get_color("white"), (self.panel_x - 150, self.w_h - self.SIZE * 4, 600, self.SIZE * 2))
+        pygame.draw.rect(self.screen, self.get_color("white"), (self.panel_x - 120, self.w_h - self.SIZE * 4, 600, self.SIZE * 2))
         
         loc_text = (self.panel_x + 120,  self.w_h - self.SIZE * 3)
         if text == "DRAW":
-            self.text_draw("DRAW",pos, self.get_color("green"), self.SIZE)
+            self.text_draw("DRAW",loc_text, "green", self.SIZE)
             return None
 
         if g_type == "PvP":
             if play_order:
-                self.text_draw(f"Player1 {text}",pos, self.get_color("green"), self.SIZE)
+                self.text_draw(f"Player1 {text}",loc_text, "green", self.SIZE)
             else:
-                self.text_draw(f"Player2 {text}",pos, self.get_color("green"), self.SIZE)  
+                self.text_draw(f"Player2 {text}",loc_text, "green", self.SIZE)  
 
         elif g_type == "PvC":
             if play_order:
-                self.text_draw(f"Player {text}",pos, self.get_color("green"), self.SIZE)
+                self.text_draw(f"Player {text}",loc_text, "green", self.SIZE)
             else:
-                self.text_draw(f"Computer {text}", pos, self.get_color("green"), self.SIZE - 10)
+                self.text_draw(f"Computer {text}", loc_text, "green", self.SIZE - 10)
             
     def draw_timer(self, turn_start_time, play_order):
         pygame.draw.rect(self.screen, self.get_color("white"), (self.panel_x - 100, self.w_h // 2 + 180 , 400, self.SIZE))
         pos = (self.panel_x + 120,  self.w_h // 2 + 200)
-        self.text_draw(f"Processed Time: {turn_start_time:.3f} s", pos, self.get_color("blue"), self.SIZE // 3)
+        self.text_draw(f"Processed Time: {turn_start_time:.3f} s", pos, "blue", self.SIZE // 3)

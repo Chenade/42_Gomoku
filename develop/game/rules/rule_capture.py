@@ -1,19 +1,18 @@
-def check_capture(stones, rows, cols, x_stone, y_stone, current_player):
-    directions = [
-        (-1, 0),  # Up
-        (1, 0),   # Down
-        (0, -1),  # Left
-        (0, 1),   # Right
-        (-1, -1), # Top-left diagonal
-        (1, 1),   # Bottom-right diagonal
-        (-1, 1),  # Top-right diagonal
-        (1, -1)   # Bottom-left diagonal
-    ]
-    
+from setting.constants import (
+    DIRECTIONS_FRONT_BACK,
+)
+from setting.config import Config
+
+def check_capture(stones, move,  current_player):
+    y_stone, x_stone = move
     opponent = -current_player
     captured_stones = set()
+    setting = Config()
+    rows = setting.COL
+    cols = setting.COL
+    
 
-    for dx, dy in directions:
+    for dx, dy in DIRECTIONS_FRONT_BACK:
         # Check if the pattern fits within the board bounds
         nx1, ny1 = y_stone + dx, x_stone + dy
         nx2, ny2 = y_stone + 2 * dx, x_stone + 2 * dy

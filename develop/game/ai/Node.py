@@ -1,5 +1,5 @@
 from .heuristic import heuristic_score
-from .constants import (
+from setting.constants import (
     WHITE,
     BLACK,
     EMPTY,

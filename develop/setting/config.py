@@ -5,6 +5,7 @@ class Config:
         self.COL = 19
         self.SIZE = 80
         self.w_h = self.SIZE * (self.COL )
+        self.CAPTURE = 10
 
     def setup(self, title):
         

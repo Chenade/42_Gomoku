@@ -1,167 +1,441 @@
-import numpy as np
-from scipy.signal import convolve2d
+from .heuristic import heuristic_score
+from .constants import (
+    WHITE,
+    BLACK,
+    EMPTY,
+    OFF_BOARD,
+    ROWS,
+    COLS,
+    DIRECTIONS,
+    DIRECTIONS_FRONT_BACK,
+    CAPTURE_WHITE,
+    CAPTURE_BLACK,
+    WINNING_SCORE_WHITE,
+    WINNING_SCORE_BLACK,
+    FORBIDDEN_SCORE_WHITE,
+    FORBIDDEN_SCORE_BLACK,
+    DRAW_SCORE,
+)
+import random
+import logging
 
 
 class Node:
-    def __init__(self, position, current_player, x=None, y=None, parent=None):
+    def __init__(
+        self,
+        board,
+        move=None,
+        stone_type=None,
+        heuristic_cost=None,
+        depth=0,
+        parent_my_captures=0,
+        parent_opponent_captures=0,
+    ):
         """
-        Represents a single node in the game tree.
+        Initialize a Node for minimax search.
 
         Args:
-            position (list[list[int]]): The current board state.
-            current_player (int): The current player (1 for AI, -1 for human).
-            x (int, optional): X-coordinate of the new stone placed. Defaults to None.
-            y (int, optional): Y-coordinate of the new stone placed. Defaults to None.
-            parent (Node, optional): The parent node. Defaults to None.
+            board (list of list of int): The current board state.
+            move (tuple, optional): The move (row, col) that led to this board state.
+            stone_type (int, optional): The type of stone placed in the move.
+            heuristic_cost (int or float, optional): The heuristic evaluation of the current board.
+            depth (int, optional): The depth of this node in the search tree.
+            parent_my_captures (int, optional): The number of captures for the player.
+            parent_opponent_captures (int, optional): The number of captures for the opponent.
         """
-        self.position = position  # Current board state
-        self.current_player = current_player  # 1 for AI, -1 for human
-        self.x = x  # Last move X-coordinate
-        self.y = y  # Last move Y-coordinate
-        self.parent = parent  # Optional parent node
-        self.children = []  # List of child nodes
-        self.score = (
-            self.parent.score + self.update_score()
-            if self.parent
-            else self.update_score()
-        )
+        self.board = board
+        self.move = move
+        self.stone_type = stone_type
+        self.heuristic_cost = heuristic_cost
+        self.depth = depth
+        self.children = []
+        self.captures = {WHITE: parent_my_captures, BLACK: parent_opponent_captures}
 
-    def generate_children(self):
+        ## is_forbidden_move is a flag indicating whether the move is forbidden.
+        self.is_forbidden_move = self.is_forbidden()
+
+        # Update the captures based on the current board state and store them as attributes.
+        self.board, self.captures = self.update_captures()
+
+        # Now we can call is_gameover() as an instance method.
+        self.is_terminal, self.winner = self.is_gameover()
+
+    def is_forbidden(self):
         """
-        Generate all possible child nodes for the current node using convolution-based neighbor check.
+        Check if the move is a forbidden move.
+
+        A forbidden move is a move that violates the "double three" rule.
+        The double three rule states that a player cannot place a stone that simultaneously forms two open rows of three.
 
         Returns:
-            Generator[Node]: Generator of child nodes.
+            bool: True if the move is forbidden, False otherwise.
         """
-        kernel = np.ones((3, 3))
-        kernel[1, 1] = 0  # Exclude the center cell
+        if self.move is None:
+            return False
 
-        # Perform convolution to identify cells with neighbors
-        neighbor_mask = (
-            convolve2d(
-                np.abs(self.position), kernel, mode="same", boundary="fill", fillvalue=0
-            )
-            > 0
-        )
+        def in_bounds(r, c):
+            return 0 <= r < ROWS and 0 <= c < COLS
 
-        # Identify valid moves: empty cells (self.position == 0) with neighbors
-        valid_moves_mask = (self.position == 0) & neighbor_mask
+        new_row, new_col = self.move
+        stone = self.stone_type
+        open_rows = 0
 
-        for (x, y), is_valid in np.ndenumerate(valid_moves_mask):
-            if is_valid:
-                new_position = self.position.copy()
-                new_position[x, y] = self.current_player
-                yield Node(new_position, -self.current_player, x, y, parent=self)
+        for dx, dy in DIRECTIONS_FRONT_BACK:
+            count = 1
+            x, y = new_row, new_col
+            while True:
+                x += dx
+                y += dy
+                if not in_bounds(x, y):
+                    break
+                if self.board[x][y] == stone:
+                    count += 1
+                elif self.board[x][y] == EMPTY:
+                    continue
+                else:
+                    break
+            if count == 3:
+                open_rows += 1
+        return open_rows == 2
 
-    def update_score(self):
+    def update_captures(self):
         """
-        Update the score of the current node based on the last move.
+        Update the number of captures for each player based on the current board state.
+
+        From the coordinates of the new stone (self.move) in each direction,
+        if a window of 4 cells (including the new stone) matches the following pattern,
+        then the two enemy stones in the middle are removed from the board and the capture count is increased by 2:
+
+            - If stone_type is WHITE: [WHITE, BLACK, BLACK, WHITE]
+            - If stone_type is BLACK: [BLACK, WHITE, WHITE, BLACK]
+
+        Cells outside the board are treated as OFF_BOARD, thus the pattern does not match.
 
         Returns:
-            int: The score of the current node.
+            tuple: (updated_board, captures) after processing any captures.
         """
-        if self.x is None or self.y is None:
-            return 0  # 初期状態（親がいない場合）のスコアは0
+        # If no new stone has been placed, do nothing and return the current board and captures.
+        if self.move is None:
+            return self.board, self.captures
 
-        # 定義されたカーネル（2連、3連、4連、5連）
-        k_2 = np.array([[1, 1]])
-        k_3 = np.array([[1, 1, 1]])
-        k_4 = np.array([[1, 1, 1, 1]])
-        k_5 = np.array([[1, 1, 1, 1, 1]])
-        kernels = [
-            k_2,
-            k_3,
-            k_4,
-            k_5,
-            k_2.T,
-            k_3.T,
-            k_4.T,
-            k_5.T,
-            np.eye(2, dtype=int),
-            np.eye(3, dtype=int),
-            np.eye(4, dtype=int),
-            np.eye(5, dtype=int),
-            np.fliplr(np.eye(2, dtype=int)),
-            np.fliplr(np.eye(3, dtype=int)),
-            np.fliplr(np.eye(4, dtype=int)),
-            np.fliplr(np.eye(5, dtype=int)),
-        ]
+        def in_bounds(r, c):
+            return 0 <= r < ROWS and 0 <= c < COLS
 
-        weights = {2: 10, 3: 100, 4: 1000, 5: 10000}  # スコアリングの重み
+        new_row, new_col = self.move
 
-        # チェック範囲を石を置いた位置の近く（5x5）に限定
-        xmin = max(0, self.x - 4)
-        xmax = min(self.position.shape[0], self.x + 5)
-        ymin = max(0, self.y - 4)
-        ymax = min(self.position.shape[1], self.y + 5)
+        # Select the pattern and the opponent's stone type according to the color of the stone.
+        if self.stone_type == WHITE:
+            pattern = CAPTURE_WHITE[:]
+        elif self.stone_type == BLACK:
+            pattern = CAPTURE_BLACK[:]
+        else:
+            return self.board, self.captures
 
-        # スコア計算
-        score = 0
-        local_board = self.position[xmin:xmax, ymin:ymax]  # 局所的な盤面を取得
+        captures_made = 0
 
-        for kernel in kernels:
-            # カーネルを適用した結果を計算
-            result_ai = convolve2d((local_board == 1).astype(int), kernel, mode="valid")
-            result_human = convolve2d(
-                (local_board == -1).astype(int), kernel, mode="valid"
-            )
+        for dx, dy in DIRECTIONS:
+            # ★ Forward check: When the new stone is at the beginning of the window.
+            forward_window = []
+            coordinates_forward = []
+            for k in range(4):  # k: 0,1,2,3; obtaining each cell.
+                r = new_row + k * dx
+                c = new_col + k * dy
+                coordinates_forward.append((r, c))
+                if in_bounds(r, c):
+                    forward_window.append(self.board[r][c])
+                else:
+                    forward_window.append(OFF_BOARD)
+            if forward_window == pattern:
+                # The middle two stones (indices 1 and 2) are eligible for capture.
+                r1, c1 = coordinates_forward[1]
+                r2, c2 = coordinates_forward[2]
+                self.board[r1][c1] = EMPTY
+                self.board[r2][c2] = EMPTY
+                captures_made += 2
 
-            # **修正：カーネル全体が特定のプレイヤーの石だけで構成されているかを確認**
-            stones = kernel.sum()  # カーネルでチェックする連続石の数
-            ai_matches = result_ai == stones  # AIが純粋に連続している部分
-            human_matches = result_human == stones  # Humanが純粋に連続している部分
+            # ★ Backward check: When the new stone is at the end of the window.
+            backward_window = []
+            coordinates_backward = []
+            # For the backward check, obtain 3 cells in the reverse direction from the new stone, and then reverse the order to match the pattern.
+            for k in range(3, -1, -1):  # k = 3,2,1,0
+                r = new_row - k * dx
+                c = new_col - k * dy
+                coordinates_backward.append((r, c))
+                if in_bounds(r, c):
+                    backward_window.append(self.board[r][c])
+                else:
+                    backward_window.append(OFF_BOARD)
+            if backward_window == pattern:
+                # The stones at positions with indices 1 and 2 are eligible for capture.
+                r1, c1 = coordinates_backward[1]
+                r2, c2 = coordinates_backward[2]
+                self.board[r1][c1] = EMPTY
+                self.board[r2][c2] = EMPTY
+                captures_made += 2
 
-            # **修正：条件を満たした部分のみスコアに反映**
-            score += weights.get(stones, 0) * np.sum(ai_matches)  # AIのスコア
-            score -= weights.get(stones, 0) * np.sum(human_matches)  # Humanのスコア
+        # Update the capture count (self.captures is already initialized as {WHITE: ..., BLACK: ...})
+        if self.stone_type == WHITE:
+            self.captures[WHITE] += captures_made
+        else:
+            self.captures[BLACK] += captures_made
 
-        return score
+        # Return the updated board and captures.
+        return self.board, self.captures
 
-    def is_game_over(self):
+    def check_five_in_a_row(self):
+        """
+        Check if there is any alignment of five or more stones matching the stone type of the last move on the board.
+
+        This function scans the board for five consecutive stones in any of the
+        following directions:
+            - Horizontal (to the right)
+            - Vertical (downwards)
+            - Diagonal down-right
+            - Diagonal up-right
+
+        If such an alignment is found, self.winner is set to the stone type (BLACK or WHITE).
+
+        Returns:
+            bool: True if an alignment is found, False otherwise.
+        """
+        if self.stone_type is None:
+            return False
+        target = self.stone_type
+        for i in range(ROWS):
+            for j in range(COLS):
+                if self.board[i][j] == target:
+                    for dx, dy in DIRECTIONS:
+                        count = 1
+                        x, y = i, j
+                        while True:
+                            x += dx
+                            y += dy
+                            if x < 0 or x >= ROWS or y < 0 or y >= COLS:
+                                break
+                            if self.board[x][y] == target:
+                                count += 1
+                            else:
+                                break
+                        if count >= 5:
+                            return True
+        return False
+
+    def check_capture(self):
+        """
+        Check if either player has reached the capture limit.
+
+        Returns:
+            tuple: (bool, winner) where bool indicates if the capture limit is reached,
+                   and winner is either WHITE, BLACK, or None.
+        """
+        if self.captures[WHITE] >= 10:
+            return True, WHITE
+        if self.captures[BLACK] >= 10:
+            return True, BLACK
+        return False, None
+
+    def is_gameover(self):
         """
         Check if the game is over.
 
         Returns:
-            bool: True if the game is over, False otherwise.
+            tuple: (bool, winner) indicating the game over status and the winner.
         """
-        if self.check_five_in_a_row(self.position == 1):  # Check for AI
-            print("Game Over: AI wins!")
-            return True
-        if self.check_five_in_a_row(self.position == -1):  # Check for Human
-            print("Game Over: Human wins!")
-            return True
+        if self.check_five_in_a_row():
+            return True, self.stone_type
+        capture_over, winner = self.check_capture()
+        if capture_over:
+            return True, winner
+        return False, None
 
-        if np.all(self.position != 0):  # Board is full
-            print("Game Over: Draw!")
-            return True
+    def add_child(self, child_node):
+        self.children.append(child_node)
 
-        return False
+    def __repr__(self):
+        board_str = "\n".join(" ".join(str(cell) for cell in row) for row in self.board)
+        return (
+            f"Node(move={self.move}, stone_type={self.stone_type},\n"
+            f"     heuristic_cost={self.heuristic_cost}, depth={self.depth},\n"
+            f"     captures={self.captures},\n"
+            f"     is_terminal={self.is_terminal},\n"
+            f"     winner={self.winner},\n"
+            f"     is_forbidden_move={self.is_forbidden_move})\n"
+            f"     board=\n{board_str}"
+        )
 
-    def check_five_in_a_row(self, board):
+    def get_heuristic_score(self):
         """
-        Check if there are five in a row using convolution.
+        Compute and return the heuristic score for the current board state.
 
-        Args:
-            board (np.ndarray): The current game board.
+        This method utilizes the updated heuristic_score function from heuristic.py,
+        which calculates the score as the sum of the alignment score (from pattern detection)
+        and the capture bonus defined as:
+            capture_bonus = 1000 * (my captures - opponent captures)
 
         Returns:
-            bool: True if there are five in a row, False otherwise.
+            int: The heuristic score.
         """
-        horizontal_kernel = np.array([[1, 1, 1, 1, 1]])
-        vertical_kernel = horizontal_kernel.T
-        diagonal_kernel1 = np.eye(5, dtype=int)
-        diagonal_kernel2 = np.fliplr(diagonal_kernel1)
+        if self.is_forbidden_move:
+            if self.stone_type == WHITE:
+                return FORBIDDEN_SCORE_WHITE
+            else:
+                return FORBIDDEN_SCORE_BLACK
+        # If it's a terminal state, return a fixed score based on the game result.
+        if self.is_terminal:
+            # self.winner is expected to be set within is_gameover().
+            if self.winner == WHITE:  # e.g., when the maximizing player is WHITE
+                return WINNING_SCORE_WHITE
+            elif self.winner == BLACK:
+                return WINNING_SCORE_BLACK
+            else:
+                return DRAW_SCORE
+        else:
+            # Perform a regular board evaluation.
+            return heuristic_score(self.board, self.captures)
 
-        directions = [
-            horizontal_kernel,
-            vertical_kernel,
-            diagonal_kernel1,
-            diagonal_kernel2,
+    def generate_child_nodes(self, next_stone_type=None):
+        """
+        Generate and return the child nodes representing all possible moves that are in
+        the rectangular window surrounding the placed stones.
+        If no stones have been allocated (i.e., the board is empty), this function will consider
+        the center of the board as the only candidate move.
+
+        Additionally, if there exists at least one child node for which placing the stone
+        (regardless of color) creates three consecutive stones (vertically, horizontally,
+        diagonally right, or diagonally left), only those nodes are returned.
+        If no such node exists, 5 random child nodes from the generated candidates are returned.
+
+        Args:
+            next_stone_type (int, optional): The stone type for the next move. If not provided,
+                it will be determined as the opposite of the current stone (or a default if no move has been made).
+
+        Returns:
+            list: A list of child Node objects.
+        """
+        # Determine the stone type for the next move.
+        if next_stone_type is None:
+            if self.stone_type is None:
+                next_stone_type = (
+                    BLACK  # Assume Black goes first if no move has been made.
+                )
+            else:
+                next_stone_type = BLACK if self.stone_type == WHITE else WHITE
+
+        possible_moves = set()
+        # For every allocated stone, add all empty adjacent positions.
+        for r in range(ROWS):
+            for c in range(COLS):
+                if self.board[r][c] != EMPTY:
+                    # Check the surrounding 3x3 area.
+                    for dr in (-1, 0, 1):
+                        for dc in (-1, 0, 1):
+                            nr, nc = r + dr, c + dc
+                            if 0 <= nr < ROWS and 0 <= nc < COLS:
+                                if self.board[nr][nc] == EMPTY:
+                                    possible_moves.add((nr, nc))
+
+        # If no stone has been placed, choose the center.
+        if not possible_moves:
+            center_move = (ROWS // 2, COLS // 2)
+            possible_moves.add(center_move)
+
+        child_nodes = []
+        for move in possible_moves:
+            # Create a deep copy of the board to simulate the move.
+            new_board = [row[:] for row in self.board]
+            new_r, new_c = move
+            new_board[new_r][new_c] = next_stone_type
+            child_node = Node(
+                board=new_board,
+                move=move,
+                stone_type=next_stone_type,
+                depth=self.depth + 1,
+                parent_my_captures=self.captures[WHITE],
+                parent_opponent_captures=self.captures[BLACK],
+            )
+            child_nodes.append(child_node)
+        logging.debug("Generated %d child nodes.", len(child_nodes))
+
+        # --- 以下、各子ノードにおいて、置いた石が3連続になっているかチェックする ---
+        def in_bounds(r, c):
+            return 0 <= r < ROWS and 0 <= c < COLS
+
+        def has_three_in_a_row(board, r, c):
+            """
+            Returns True if the stone at (r, c) forms at least 3 consecutive stones
+            (of any color: WHITE or BLACK) when checking both forward and backward in each of the 8 directions.
+            """
+            stone = board[r][c]
+            if stone == EMPTY:
+                return False
+
+            def in_bounds(x, y):
+                return 0 <= x < ROWS and 0 <= y < COLS
+
+            for dx, dy in DIRECTIONS_FRONT_BACK:
+                count = 1  # 現在の石をカウント
+                # 正方向
+                x, y = r + dx, c + dy
+                while in_bounds(x, y) and board[x][y] == stone:
+                    count += 1
+                    x += dx
+                    y += dy
+                # 逆方向
+                x, y = r - dx, c - dy
+                while in_bounds(x, y) and board[x][y] == stone:
+                    count += 1
+                    x -= dx
+                    y -= dy
+                if count >= 3:
+                    return True
+            return False
+
+        def has_three_in_a_row(board, r, c):
+            """
+            Returns True if the stone at (r, c) forms at least 3 consecutive stones
+            in one of the 4 directions: horizontal, vertical,
+            diagonal right, or diagonal left.
+            """
+            for dx, dy in DIRECTIONS_FRONT_BACK:
+                count = 1
+                x, y = r + dx, c + dy
+                while in_bounds(x, y) and board[x][y] in (WHITE, BLACK):
+                    count += 1
+                    x += dx
+                    y += dy
+                if count >= 3:
+                    return True
+            return False
+
+        returned_child_nodes = []
+        three_row_nodes = [
+            child
+            for child in child_nodes
+            if has_three_in_a_row(child.board, child.move[0], child.move[1])
         ]
-
-        for kernel in directions:
-            result = convolve2d(board, kernel, mode="valid")
-            if np.any(result == 5):
-                return True
-
-        return False
+        if three_row_nodes:
+            logging.debug(
+                "Found %d child node(s) with three in a row.", len(three_row_nodes)
+            )
+            if len(three_row_nodes) >= 10:
+                return three_row_nodes
+            else:
+                remaining = [
+                    child for child in child_nodes if child not in three_row_nodes
+                ]
+                num_needed = 10 - len(three_row_nodes)
+                additional = (
+                    random.sample(remaining, min(num_needed, len(remaining)))
+                    if remaining
+                    else []
+                )
+                returned_child_nodes = three_row_nodes + additional
+                return returned_child_nodes
+        else:
+            num_to_return = min(10, len(child_nodes))
+            random_nodes = random.sample(child_nodes, num_to_return)
+            logging.debug(
+                "No three-in-a-row child node found. Returning %d random child nodes.",
+                num_to_return,
+            )
+            return random_nodes

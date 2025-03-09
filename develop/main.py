@@ -65,6 +65,11 @@ if __name__ == "__main__":
                         x_stone, y_stone = board.get_stone_pos()
                         if gomoku.check_legal(x_stone, y_stone, play_order):
                             player1_score, player2_score, play_order = handle_move(board, gomoku, x_stone, y_stone, play_order, player1_score, player2_score)
+                        else:
+                            board.draw_stone("red", x_stone, y_stone)
+                            pygame.display.update()
+                            pygame.time.delay(500)
+                            board.remove_stone(x_stone, y_stone)
 
                         if gomoku.g_type == "PvC" and play_order is False:
                             pygame.display.update()

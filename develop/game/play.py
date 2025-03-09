@@ -45,7 +45,7 @@ class Gomoku:
     def check_legal(self, x_stone, y_stone, play_order):
         if x_stone is not None and y_stone is not None:
             if self._stones[y_stone][x_stone] == 0:
-                if check_double_three(self._stones, self.COL, self.COL, x_stone, y_stone, play_order):
+                if check_double_three(self._stones, self.COL, self.COL, x_stone, y_stone, (-1 if self.play_order else 1)):
                     return False
                 self._stones[y_stone][x_stone] = (-1 if play_order else 1)
                 return True
@@ -71,8 +71,20 @@ class Gomoku:
         return player1_score, player2_score, self.play_order, None
 
     def print_stones(self):
+        print("   | ", end="")
         for i in range(self.COL):
+            print(" ", end="")
+            print(i, end=" ")
+        print("\n---------------------------------------------------------------------")
+        for i in range(self.COL):
+            if (i < 10):
+                print(" ", end="")
+            print(f"{i} | ", end="")
             for j in range(self.COL):
+                if (j >= 10):
+                    print(" ", end="")
+                if self._stones[i][j] != -1:
+                    print(" ", end="")
                 print(self._stones[i][j], end=" ")
             print()
         print()

@@ -1,5 +1,6 @@
 from .heuristic import heuristic_score
-from setting.constants import (
+# todo: take from setting.constants
+from .constants import (
     WHITE,
     BLACK,
     EMPTY,
@@ -19,6 +20,7 @@ from setting.constants import (
 import random
 import logging
 
+# todo: from game.rules.rule_double_three import check_double_three
 
 class Node:
     def __init__(

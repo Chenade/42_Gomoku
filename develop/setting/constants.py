@@ -7,9 +7,6 @@ WHITE = 1
 BLACK = -1
 OFF_BOARD = 9
 
-ROWS = 19
-COLS = 19
-
 DIRECTIONS = [(0, 1), (1, 0), (1, 1), (-1, 1)]
 DIRECTIONS_FRONT_BACK = [
     (-1, -1),

@@ -2,9 +2,8 @@ from setting.constants import (
     DIRECTIONS_FRONT_BACK,
     EMPTY,
 )
-from setting.config import Config
 
-def check_double_three(stones, move, current_player):
+def check_double_three(setting, stones, move, current_player):
 
     if move is None:
         return False
@@ -12,7 +11,6 @@ def check_double_three(stones, move, current_player):
     def in_bounds(r, c):
         return 0 <= r < setting.COL and 0 <= c < setting.COL
 
-    setting = Config()
     new_row, new_col = move
     stone = current_player
     open_rows = 0

@@ -1,10 +1,8 @@
 import pygame, time
 import random
-# from config import Config
 from game.rules.rule_win import check_win
 from game.rules.rule_capture import check_capture
 from game.rules.rule_double_three import check_double_three
-from setting.config import Config
 
 class Gomoku:
 
@@ -12,9 +10,8 @@ class Gomoku:
         self.type = None
         self.g_type = None
         self._stones = []
+        self.capture = config.CAPTURE
         self.COL = config.COL
-        # self.capture = Config.CAPTURE
-        # print(self.capture)
 
     def init_board(self):
         self._stones = {}
@@ -46,8 +43,8 @@ class Gomoku:
         self.result = True
         return self.result
 
-    def check_legal(self, x_stone, y_stone, play_order):
-        move = (y_stone, x_stone)
+    def check_legal(self, move, play_order):
+        y_stone, x_stone = move
         if x_stone is not None and y_stone is not None:
             if self._stones[y_stone][x_stone] == 0:
                 if check_double_three(self._stones, move, (-1 if self.play_order else 1)):
@@ -56,9 +53,7 @@ class Gomoku:
                 return True
         return False
 
-    def move(self, x_stone, y_stone, player1_score, player2_score):
-        
-        move = (y_stone, x_stone)
+    def move(self, move, player1_score, player2_score):
         capture = check_capture(self._stones, move, (-1 if self.play_order else 1))
         if capture:
             for x, y in capture:
@@ -68,14 +63,38 @@ class Gomoku:
                 else:
                     player2_score += 1
 
-        if player1_score >= 10  or player2_score >= 10 or \
+        if player1_score >= self.capture  or player2_score >= self.capture or \
             check_win(self._stones, self.COL, self.COL):
             return player1_score, player2_score, self.play_order, "WIN"
         
-        self.print_stones()
+        # self.print_stones()
         self.play_order = not self.play_order
         return player1_score, player2_score, self.play_order, None
 
+    def computer_move(self, ai, draw_stone, remove_stone):
+        start_time = time.time()
+        top_moves = ai.get_top_moves(self._stones, current_player=1, top_n=3)
+        end_time = time.time()
+        process_time = end_time - start_time
+        
+        draw_stone("white", top_moves[0][1])
+
+        # suggest #2 moves
+        draw_stone("_white", top_moves[1][1])
+
+        # suggest #3 moves
+        draw_stone("_white", top_moves[2][1])
+
+        pygame.display.update()
+
+        # remove #2, #3 moves after 1 second
+        pygame.time.delay(1000)
+        remove_stone(top_moves[1][1])
+        remove_stone(top_moves[2][1])  
+
+        self.check_legal(top_moves[0][1], self.play_order)
+        return top_moves[0][1], process_time
+    
     def print_stones(self):
         print("   | ", end="")
         for i in range(self.COL):
@@ -94,36 +113,3 @@ class Gomoku:
                 print(self._stones[i][j], end=" ")
             print()
         print()
-
-    def computer_move(self, ai, draw_stone, remove_stone):
-        start_time = time.time()
-        top_moves = ai.get_top_moves(self._stones, current_player=1, top_n=3)
-        end_time = time.time()
-        process_time = end_time - start_time
-        
-        print(top_moves)
-        r_y_stone, r_x_stone = top_moves[0][1]
-        
-        # suggest #1 moves(x_stone, y_stone)
-        print(r_x_stone, r_y_stone)
-        draw_stone("white", r_x_stone, r_y_stone)
-
-        # suggest #2 moves
-        y_stone, x_stone = top_moves[1][1]
-        print(x_stone, y_stone)
-        draw_stone("_white", x_stone, y_stone)
-
-        # suggest #3 moves
-        y_stone, x_stone = top_moves[2][1]
-        print(x_stone, y_stone)
-        draw_stone("_white", x_stone, y_stone)
-
-        pygame.display.update()
-
-        # remove #2, #3 moves after 1 second
-        pygame.time.delay(1000)
-        remove_stone(x_stone, y_stone)
-        y_stone, x_stone = top_moves[1][1]
-        remove_stone(x_stone, y_stone)  
-        
-        return r_x_stone, r_y_stone, process_time

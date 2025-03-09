@@ -4,12 +4,9 @@ from game import Board, Gomoku
 from game.ai import AIPlayer, Node
 from setting.config import Config
 
-COL = 19
-SIZE = 80
-
-def handle_move(board, gomoku, x_stone, y_stone, play_order, player1_score, player2_score):
-    board.draw_stone("black" if (play_order) else "white", x_stone, y_stone)
-    player1_score, player2_score, play_order, result = gomoku.move(x_stone, y_stone, player1_score, player2_score)
+def handle_move(board, gomoku, move, play_order, player1_score, player2_score):
+    board.draw_stone("black" if (play_order) else "white", move)
+    player1_score, player2_score, play_order, result = gomoku.move(move, player1_score, player2_score)
     board.remove_captures(gomoku._stones)
     board.draw_player(gomoku.g_type, play_order, player1_score, player2_score)
     if result is not None:
@@ -63,18 +60,20 @@ if __name__ == "__main__":
                 if play_order is not None:
                     if gomoku.g_type == "PvP" or (gomoku.g_type == "PvC" and play_order is True):
                         x_stone, y_stone = board.get_stone_pos()
-                        if gomoku.check_legal(x_stone, y_stone, play_order):
-                            player1_score, player2_score, play_order = handle_move(board, gomoku, x_stone, y_stone, play_order, player1_score, player2_score)
+                        move = (y_stone, x_stone)
+                        if gomoku.check_legal(move, play_order):
+                            player1_score, player2_score, play_order = handle_move(board, gomoku, move, play_order, player1_score, player2_score)
                         else:
-                            board.draw_stone("red", x_stone, y_stone)
+                            move = (y_stone, x_stone)
+                            board.draw_stone("red", move)
                             pygame.display.update()
                             pygame.time.delay(500)
-                            board.remove_stone(x_stone, y_stone)
+                            board.remove_stone(move)
 
                         if gomoku.g_type == "PvC" and play_order is False:
                             pygame.display.update()
-                            x_stone, y_stone, process_time = gomoku.computer_move(ai, board.draw_stone, board.remove_stone)
-                            player1_score, player2_score, play_order = handle_move(board, gomoku, x_stone, y_stone, play_order, player1_score, player2_score)
+                            move, process_time = gomoku.computer_move(ai, board.draw_stone, board.remove_stone)
+                            player1_score, player2_score, play_order = handle_move(board, gomoku, move, play_order, player1_score, player2_score)
                             board.draw_timer(process_time, play_order)  
 
 

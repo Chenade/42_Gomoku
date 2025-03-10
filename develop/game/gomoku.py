@@ -67,28 +67,42 @@ class Gomoku:
         self.play_order = not self.play_order
         return player1_score, player2_score, self.play_order, None
 
+    def draw_hint(self, draw_stone, moves):
+        for move in moves:
+            draw_stone("hint", move)
+            y_stone, x_stone = move
+            self._stones[y_stone][x_stone] = 5
+        pygame.display.update()
+        
+    def remove_hint(self, remove_stone):
+        for i in range(self.COL):
+            for j in range(self.COL):
+                if self._stones[i][j] == 5:
+                    remove_stone((i, j))
+                    self._stones[i][j] = 0
+        pygame.display.update()
+
+    def  hint_move(self, ai, draw_stone, remove_stone, play_order):
+        self.remove_hint(remove_stone)
+        top_moves = ai.get_top_moves(self._stones, current_player=(1 if play_order else -1), top_n=3)
+        moves = []
+        for move in top_moves:
+            moves.append(move[1])
+        self.draw_hint(draw_stone, moves)
+
     def computer_move(self, ai, draw_stone, remove_stone):
         start_time = time.time()
         top_moves = ai.get_top_moves(self._stones, current_player=1, top_n=3)
         end_time = time.time()
         process_time = end_time - start_time
-        
         draw_stone("player2", top_moves[0][1])
-
-        # suggest #2 moves
-        draw_stone("hint", top_moves[1][1])
-
-        # suggest #3 moves
-        draw_stone("hint", top_moves[2][1])
-
-        pygame.display.update()
-
-        # remove #2, #3 moves after 1 second
-        pygame.time.delay(1000)
-        remove_stone(top_moves[1][1])
-        remove_stone(top_moves[2][1])  
-
         self.check_legal(top_moves[0][1], self.play_order)
+
+        # Hint
+        self.draw_hint(draw_stone, [top_moves[1][1], top_moves[2][1]])
+        pygame.time.delay(1000)
+        self.remove_hint(remove_stone)
+
         return top_moves[0][1], process_time
     
     def print_stones(self):

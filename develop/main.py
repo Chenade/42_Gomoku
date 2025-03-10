@@ -8,8 +8,8 @@ def main():
     pygame.font.init()
     game = Game()
     event_handler = EventHandler(game)
-    # game.setting.set_column(5)
-    # game.setting.set_color(board_color="dark_green", line_color="white")
+    # game.setting.set_column(15)
+    # game.setting.set_color(board_color="dark_green", line_color="white")zz
 
     while True:
         game.view.draw_page(game.status)
@@ -26,26 +26,20 @@ def main():
 
             # Playing
             if game.play_order is not None:
-                if game.status == "PvP" or (game.status == "PvC" and game.play_order is True):
-                    move = game.view.get_stone_pos(game.gomoku._stones)
-                    if move is not None:
-                        if game.gomoku.check_legal(move, game.play_order):
-                            game.player1_score, game.player2_score, game.play_order = game.handle_move(move)
-                        else:
-                            game.view.draw_stone("red", move)
-                            pygame.display.update()
-                            pygame.time.delay(500)
-                            game.view.remove_stone(move)
-
-                    if game.status == "PvC" and game.play_order is False:
+                if game.status == "PvP":
+                    game.gomoku.hint_move(game.ai, game.view.draw_stone, game.view.remove_stone, game.play_order)
+                    game.player1_score, game.player2_score, game.play_order = game.user_move()
+                    pygame.display.update()
+                    continue
+                else:
+                    if game.play_order is True:
+                        game.player1_score, game.player2_score, game.play_order = game.user_move()
                         pygame.display.update()
+                    if game.play_order is False:
                         move, process_time = game.gomoku.computer_move(game.ai, game.view.draw_stone, game.view.remove_stone)
                         game.player1_score, game.player2_score, game.play_order = game.handle_move(move)
                         game.view.text_timer(process_time, game.play_order)
-                check_draw = game.gomoku.check_draw(game.gomoku._stones)
-                if check_draw:
-                    game.view.text_result(game.gomoku.g_type, game.gomoku.play_order, "DRAW")
-                    game.play_order = None
+                        pygame.display.update()
 
         pygame.display.update()
 

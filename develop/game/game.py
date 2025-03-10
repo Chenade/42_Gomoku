@@ -22,6 +22,16 @@ class Game:
         self.play_order = self.gomoku.new_game(self.view, game_type)
         self.view.text_player(self.gomoku.g_type, self.play_order, self.player1_score, self.player2_score)
         return self.player1_score, self.player2_score, self.play_order
+    
+    def user_move(self):
+        move = self.view.get_stone_pos(self.gomoku._stones)
+        if move is not None:
+            if self.gomoku.check_legal(move, self.play_order):
+                self.player1_score, self.player2_score, self.play_order = self.handle_move(move)
+            else:
+                self.view.draw_stone("red", move)
+                self.view.remove_stone(move)
+        return self.player1_score, self.player2_score, self.play_order
 
     def handle_move(self, move):
         self.view.draw_stone("player1" if self.play_order else "player2", move)

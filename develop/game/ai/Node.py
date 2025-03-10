@@ -1,6 +1,5 @@
 from .heuristic import heuristic_score
-# todo: take from setting.constants
-from .constants import (
+from setting.constants import (
     WHITE,
     BLACK,
     EMPTY,

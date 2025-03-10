@@ -1,6 +1,6 @@
 from game.ai.Node import Node
 from .Node import Node
-from .constants import BLACK
+from setting.constants import BLACK
 
 
 class AIPlayer:

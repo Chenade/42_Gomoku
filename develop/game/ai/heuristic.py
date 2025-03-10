@@ -1,4 +1,4 @@
-from .constants import (
+from setting.constants import (
     EMPTY,
     WHITE,
     BLACK,

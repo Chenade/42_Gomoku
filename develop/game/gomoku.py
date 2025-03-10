@@ -42,11 +42,10 @@ class Gomoku:
     def check_legal(self, move, play_order):
         y_stone, x_stone = move
         if x_stone is not None and y_stone is not None:
-            if self._stones[y_stone][x_stone] == 0:
-                if check_double_three(self.setting, self._stones, move, (-1 if self.play_order else 1)):
-                    return False
-                self._stones[y_stone][x_stone] = (-1 if play_order else 1)
-                return True
+            if check_double_three(self.setting, self._stones, move, (-1 if self.play_order else 1)):
+                return False
+            self._stones[y_stone][x_stone] = (-1 if play_order else 1)
+            return True
         return False
 
     def move(self, move, player1_score, player2_score):

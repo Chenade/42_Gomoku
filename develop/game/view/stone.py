@@ -22,7 +22,7 @@ class Stone:
             else:
                 y_stone -= y_stone % self.SIZE
 
-            if (_stones[x_stone // self.SIZE - 1][y_stone // self.SIZE - 1] != 0):
+            if (_stones[x_stone // self.SIZE - 1][y_stone // self.SIZE - 1] != 0 and _stones[x_stone // self.SIZE - 1][y_stone // self.SIZE - 1] != 5):
                 return None
 
             return (x_stone // self.SIZE - 1, y_stone // self.SIZE - 1)

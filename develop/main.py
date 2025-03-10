@@ -8,8 +8,8 @@ def main():
     pygame.font.init()
     game = Game()
     event_handler = EventHandler(game)
-    # game.setting.set_column(15)
-    # game.setting.set_color(board_color="dark_green", line_color="white")zz
+    # game.setting.set_column(10)
+    # game.setting.set_color(board_color="dark_green", line_color="white")
 
     while True:
         game.view.draw_page(game.status)

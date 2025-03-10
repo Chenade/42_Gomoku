@@ -5,8 +5,6 @@ from .constants import (
     BLACK,
     EMPTY,
     OFF_BOARD,
-    ROWS,
-    COLS,
     DIRECTIONS,
     DIRECTIONS_FRONT_BACK,
     CAPTURE_WHITE,
@@ -32,6 +30,7 @@ class Node:
         depth=0,
         parent_my_captures=0,
         parent_opponent_captures=0,
+        col=19,
     ):
         """
         Initialize a Node for minimax search.
@@ -45,6 +44,8 @@ class Node:
             parent_my_captures (int, optional): The number of captures for the player.
             parent_opponent_captures (int, optional): The number of captures for the opponent.
         """
+        self.rows = col
+        self.cols = col
         self.board = board
         self.move = move
         self.stone_type = stone_type
@@ -76,7 +77,7 @@ class Node:
             return False
 
         def in_bounds(r, c):
-            return 0 <= r < ROWS and 0 <= c < COLS
+            return 0 <= r < self.rows and 0 <= c < self.cols
 
         new_row, new_col = self.move
         stone = self.stone_type
@@ -121,7 +122,7 @@ class Node:
             return self.board, self.captures
 
         def in_bounds(r, c):
-            return 0 <= r < ROWS and 0 <= c < COLS
+            return 0 <= r < self.rows and 0 <= c < self.cols
 
         new_row, new_col = self.move
 
@@ -203,8 +204,8 @@ class Node:
         if self.stone_type is None:
             return False
         target = self.stone_type
-        for i in range(ROWS):
-            for j in range(COLS):
+        for i in range(self.rows):
+            for j in range(self.cols):
                 if self.board[i][j] == target:
                     for dx, dy in DIRECTIONS:
                         count = 1
@@ -212,7 +213,7 @@ class Node:
                         while True:
                             x += dx
                             y += dy
-                            if x < 0 or x >= ROWS or y < 0 or y >= COLS:
+                            if x < 0 or x >= self.rows or y < 0 or y >= self.cols:
                                 break
                             if self.board[x][y] == target:
                                 count += 1
@@ -293,7 +294,7 @@ class Node:
                 return DRAW_SCORE
         else:
             # Perform a regular board evaluation.
-            return heuristic_score(self.board, self.captures)
+            return heuristic_score(self.board, self.captures, rows=self.rows, cols=self.cols)
 
     def generate_child_nodes(self, next_stone_type=None):
         """
@@ -325,20 +326,20 @@ class Node:
 
         possible_moves = set()
         # For every allocated stone, add all empty adjacent positions.
-        for r in range(ROWS):
-            for c in range(COLS):
+        for r in range(self.rows):
+            for c in range(self.cols):
                 if self.board[r][c] != EMPTY:
                     # Check the surrounding 3x3 area.
                     for dr in (-1, 0, 1):
                         for dc in (-1, 0, 1):
                             nr, nc = r + dr, c + dc
-                            if 0 <= nr < ROWS and 0 <= nc < COLS:
+                            if 0 <= nr < self.rows and 0 <= nc < self.cols:
                                 if self.board[nr][nc] == EMPTY:
                                     possible_moves.add((nr, nc))
 
         # If no stone has been placed, choose the center.
         if not possible_moves:
-            center_move = (ROWS // 2, COLS // 2)
+            center_move = (self.rows // 2, self.cols // 2)
             possible_moves.add(center_move)
 
         child_nodes = []
@@ -354,13 +355,14 @@ class Node:
                 depth=self.depth + 1,
                 parent_my_captures=self.captures[WHITE],
                 parent_opponent_captures=self.captures[BLACK],
+                col=self.cols,
             )
             child_nodes.append(child_node)
         logging.debug("Generated %d child nodes.", len(child_nodes))
 
         # --- 以下、各子ノードにおいて、置いた石が3連続になっているかチェックする ---
         def in_bounds(r, c):
-            return 0 <= r < ROWS and 0 <= c < COLS
+            return 0 <= r < self.rows and 0 <= c < self.cols
 
         def has_three_in_a_row(board, r, c):
             """
@@ -372,7 +374,7 @@ class Node:
                 return False
 
             def in_bounds(x, y):
-                return 0 <= x < ROWS and 0 <= y < COLS
+                return 0 <= x < self.rows and 0 <= y < self.cols
 
             for dx, dy in DIRECTIONS_FRONT_BACK:
                 count = 1  # 現在の石をカウント

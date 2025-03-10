@@ -4,8 +4,9 @@ from .constants import BLACK
 
 
 class AIPlayer:
-    def __init__(self, depth=3):
+    def __init__(self, depth=3, col=19):
         self.depth = depth - 1
+        self.col = col
 
     def minimax_alpha_beta(self, node, depth, alpha, beta):
         """
@@ -119,6 +120,6 @@ class AIPlayer:
         Returns:
             list of tuples: Each tuple is (score, (x, y)) where (x, y) are the move coordinates.
         """
-        node = Node(board=position, move=None, stone_type=BLACK, depth=0)
+        node = Node(board=position, move=None, stone_type=BLACK, depth=0, col=self.col)
         top_moves = self.initiate_minimax(node, depth=self.depth, top_n=top_n)
         return [(score, child.move) for score, child in top_moves]

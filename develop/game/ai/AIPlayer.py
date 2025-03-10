@@ -1,11 +1,12 @@
 from game.ai.Node import Node
 from .Node import Node
-from .constants import BLACK
+from setting.constants import BLACK
 
 
 class AIPlayer:
-    def __init__(self, depth=3):
+    def __init__(self, depth=3, setting=None):
         self.depth = depth - 1
+        self.setting = setting
 
     def minimax_alpha_beta(self, node, depth, alpha, beta):
         """
@@ -119,6 +120,6 @@ class AIPlayer:
         Returns:
             list of tuples: Each tuple is (score, (x, y)) where (x, y) are the move coordinates.
         """
-        node = Node(board=position, move=None, stone_type=BLACK, depth=0)
+        node = Node(board=position, move=None, stone_type=BLACK, depth=0, setting=self.setting)
         top_moves = self.initiate_minimax(node, depth=self.depth, top_n=top_n)
         return [(score, child.move) for score, child in top_moves]

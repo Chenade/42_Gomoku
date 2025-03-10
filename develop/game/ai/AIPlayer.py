@@ -1,6 +1,6 @@
 from game.ai.Node import Node
 from .Node import Node
-from setting.constants import BLACK
+from setting.constants import BLACK, WHITE
 
 
 class AIPlayer:
@@ -82,7 +82,7 @@ class AIPlayer:
                     break  # alpha cut-off
             return min_eval, best_move
 
-    def initiate_minimax(self, node, depth, top_n=3):
+    def initiate_minimax(self, node, depth):
         """
         Generate all possible moves from the current node and evaluate them with minimax,
         then return the top_n moves sorted by descending heuristic score.
@@ -103,9 +103,9 @@ class AIPlayer:
                 child, depth - 1, False, alpha=float("-inf"), beta=float("inf")
             )
             moves_scores.append((score, child))
-        # Sort moves by score in descending order (higher is better for maximizing player)
-        moves_scores.sort(key=lambda x: x[0], reverse=True)
-        return moves_scores[:top_n]
+
+        return moves_scores
+
 
     def get_top_moves(self, position, current_player, top_n=3):
         """
@@ -120,6 +120,34 @@ class AIPlayer:
         Returns:
             list of tuples: Each tuple is (score, (x, y)) where (x, y) are the move coordinates.
         """
-        node = Node(board=position, move=None, stone_type=BLACK, depth=0, setting=self.setting)
-        top_moves = self.initiate_minimax(node, depth=self.depth, top_n=top_n)
+        # Determine the last stone type based on the current player
+        if current_player == 1:
+            last_stone = BLACK
+        elif current_player == -1:
+            last_stone = WHITE
+        else:
+            raise ValueError("current_player must be either 1 (white) or -1 (black)")
+
+        # Create the root node
+        node = Node(
+            board=position,
+            move=None,
+            stone_type=last_stone,
+            depth=0,
+            setting=self.setting,
+        )
+        
+        # Generate all possible moves and evaluate with minimax
+        next_moves = self.initiate_minimax(node, depth=self.depth)
+        
+        # Sort moves by score in descending order (higher is better for maximizing player)
+        if current_player == 1:
+            next_moves.sort(key=lambda x: x[0], reverse=True)
+        else:
+            next_moves.sort(key=lambda x: x[0], reverse=False)
+
+        # take top_n moves
+        top_moves = next_moves[:top_n]
+
+        # return list of (score, move) tuples
         return [(score, child.move) for score, child in top_moves]

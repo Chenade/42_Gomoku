@@ -1,10 +1,8 @@
-from .constants import (
+from setting.constants import (
     EMPTY,
     WHITE,
     BLACK,
     OFF_BOARD,
-    ROWS,
-    COLS,
     DIRECTIONS,
     CAPTURE_SCORE,
     RATING_SCORES,
@@ -84,7 +82,7 @@ def get_cells_in_window(i, j, dx, dy, length):
     return [(i + k * dx, j + k * dy) for k in range(length)]
 
 
-def detect_open_four(board, i, j, dx, dy):
+def detect_open_four(board, i, j, dx, dy, rows, cols):
     """
     Detect an open four pattern starting at (i, j) in the direction (dx, dy).
     """
@@ -95,7 +93,7 @@ def detect_open_four(board, i, j, dx, dy):
         x = i + k * dx
         y = j + k * dy
         # Check bounds; if out of bounds, use OFF_BOARD
-        if 0 <= x < ROWS and 0 <= y < COLS:
+        if 0 <= x < rows and 0 <= y < cols:
             window_cells.append((x, y))
         else:
             window_cells.append(None)
@@ -119,7 +117,7 @@ def detect_open_four(board, i, j, dx, dy):
     return rating
 
 
-def detect_open_three(board, i, j, dx, dy):
+def detect_open_three(board, i, j, dx, dy, rows, cols):
     """
     Detect an open three pattern starting at (i, j) in the direction (dx, dy).
 
@@ -138,7 +136,7 @@ def detect_open_three(board, i, j, dx, dy):
     for k in range(-1, 4):  # k = -1,0,1,2,3 (5 cells)
         x = i + k * dx
         y = j + k * dy
-        if 0 <= x < ROWS and 0 <= y < COLS:
+        if 0 <= x < rows and 0 <= y < cols:
             window_cells.append((x, y))
         else:
             window_cells.append(None)  # off-board
@@ -163,7 +161,7 @@ def detect_open_three(board, i, j, dx, dy):
     return rating
 
 
-def create_target_board(board):
+def create_target_board(board, rows, cols):
     """
     Collect candidate coordinates based on the stones on the board.
     For each stone (non-EMPTY cell), add all 8 adjacent and the stone's coordinate.
@@ -173,19 +171,19 @@ def create_target_board(board):
     """
 
     candidate_positions = set()
-    for i in range(ROWS):
-        for j in range(COLS):
+    for i in range(rows):
+        for j in range(cols):
             if board[i][j] != EMPTY:
                 for di in range(-1, 2):  # -1, 0, 1
                     for dj in range(-1, 2):  # -1, 0, 1
                         ni = i + di
                         nj = j + dj
-                        if 0 <= ni < ROWS and 0 <= nj < COLS:
+                        if 0 <= ni < rows and 0 <= nj < cols:
                             candidate_positions.add((ni, nj))
     return candidate_positions
 
 
-def detect_patterns(board, candidate_positions, target_color):
+def detect_patterns(board, candidate_positions, target_color, rows=19, cols=19):
     """
     Scan the board for patterns for the given target_color using the candidate positions.
 
@@ -208,11 +206,11 @@ def detect_patterns(board, candidate_positions, target_color):
 
     for i, j in candidate_positions:
         for dx, dy in DIRECTIONS:
-            rating = detect_open_four(norm_board, i, j, dx, dy)
+            rating = detect_open_four(norm_board, i, j, dx, dy, rows, cols)
             if rating is not None:
                 key = f"open-four-{rating}"
                 open_four_scores.append(RATING_SCORES.get(key, 0))
-            rating = detect_open_three(norm_board, i, j, dx, dy)
+            rating = detect_open_three(norm_board, i, j, dx, dy, rows, cols)
             if rating is not None:
                 key = f"open-three-{rating}"
                 open_three_scores.append(RATING_SCORES.get(key, 0))
@@ -235,7 +233,7 @@ def detect_patterns(board, candidate_positions, target_color):
     return total_score
 
 
-def heuristic_score(board, captures=None):
+def heuristic_score(board, captures=None, rows=19, cols=19):
     """
     Calculate the heuristic score for the given board state.
 
@@ -255,9 +253,9 @@ def heuristic_score(board, captures=None):
     Returns:
         int: The resulting heuristic score.
     """
-    candidate_positions = create_target_board(board)
-    my_score = detect_patterns(board, candidate_positions, target_color=WHITE)
-    opp_score = detect_patterns(board, candidate_positions, target_color=BLACK)
+    candidate_positions = create_target_board(board, rows=rows, cols=cols)
+    my_score = detect_patterns(board, candidate_positions, target_color=WHITE, rows=rows, cols=cols)
+    opp_score = detect_patterns(board, candidate_positions, target_color=BLACK, rows=rows, cols=cols)
     alignment_score = my_score - opp_score
 
     capture_bonus = 0

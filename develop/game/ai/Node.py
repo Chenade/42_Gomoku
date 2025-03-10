@@ -17,7 +17,7 @@ from setting.constants import (
 import random
 import logging
 
-# todo: from game.rules.rule_double_three import check_double_three
+from game.rules.rule_double_three import check_double_three
 
 class Node:
     def __init__(
@@ -29,7 +29,7 @@ class Node:
         depth=0,
         parent_my_captures=0,
         parent_opponent_captures=0,
-        col=19,
+        setting=None,
     ):
         """
         Initialize a Node for minimax search.
@@ -43,8 +43,9 @@ class Node:
             parent_my_captures (int, optional): The number of captures for the player.
             parent_opponent_captures (int, optional): The number of captures for the opponent.
         """
-        self.rows = col
-        self.cols = col
+        self.setting = setting
+        self.rows = setting.COL
+        self.cols = setting.COL
         self.board = board
         self.move = move
         self.stone_type = stone_type
@@ -72,33 +73,7 @@ class Node:
         Returns:
             bool: True if the move is forbidden, False otherwise.
         """
-        if self.move is None:
-            return False
-
-        def in_bounds(r, c):
-            return 0 <= r < self.rows and 0 <= c < self.cols
-
-        new_row, new_col = self.move
-        stone = self.stone_type
-        open_rows = 0
-
-        for dx, dy in DIRECTIONS_FRONT_BACK:
-            count = 1
-            x, y = new_row, new_col
-            while True:
-                x += dx
-                y += dy
-                if not in_bounds(x, y):
-                    break
-                if self.board[x][y] == stone:
-                    count += 1
-                elif self.board[x][y] == EMPTY:
-                    continue
-                else:
-                    break
-            if count == 3:
-                open_rows += 1
-        return open_rows == 2
+        return check_double_three(self.setting, self.board, self.move, self.stone_type)
 
     def update_captures(self):
         """
@@ -354,7 +329,7 @@ class Node:
                 depth=self.depth + 1,
                 parent_my_captures=self.captures[WHITE],
                 parent_opponent_captures=self.captures[BLACK],
-                col=self.cols,
+                setting=self.setting,
             )
             child_nodes.append(child_node)
         logging.debug("Generated %d child nodes.", len(child_nodes))
